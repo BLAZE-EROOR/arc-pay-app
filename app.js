@@ -53,15 +53,15 @@ async function connectWallet() {
     } catch (switchError) {
       if (switchError.code === 4902 || switchError.code === -32603) {
         await window.ethereum.request({
-          method: "wallet_addEthereumChain",
-          params: [{
-            chainId: ARC_CHAIN_ID_HEX,
-            chainName: "Arc Testnet",
-            nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
-            rpcUrls: [ARC_RPC],
-            blockExplorerUrls: ["https://testnet.arcscan.app"]
-          }]
-        });
+           method: "wallet_addEthereumChain",
+           params: [{
+             chainId: ARC_CHAIN_ID_HEX,
+             chainName: "Arc Testnet",
+             nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 6 },
+             rpcUrls: ["https://rpc.testnet.arc.network"],
+             blockExplorerUrls: ["https://testnet.arcscan.app"]
+            }]
+         });
       }
     }
 
