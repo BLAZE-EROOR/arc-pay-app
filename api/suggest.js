@@ -19,8 +19,8 @@ Wallet Data:
 - Total Transactions: ${walletData.txCount}
 - Last Transaction: ${walletData.lastTx}
 
-Respond ONLY with a valid JSON array, no other text. Example format:
-[{"icon":"💡","text":"Your suggestion here"},{"icon":"📈","text":"Another suggestion"}]`;
+Respond ONLY with a valid JSON array, no markdown, no backticks, no other text.
+Example: [{"icon":"💡","text":"Your suggestion here"},{"icon":"📈","text":"Another suggestion"}]`;
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -31,19 +31,32 @@ Respond ONLY with a valid JSON array, no other text. Example format:
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-opus-4-6",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 500,
         messages: [{ role: "user", content: prompt }]
       })
     });
 
     const data = await response.json();
+
+    // Log full response for debugging
+    console.log("Claude response:", JSON.stringify(data));
+
+    if (!data.content || data.content.length === 0) {
+      console.error("Empty content:", data);
+      return res.status(500).json({ error: "Empty response from Claude", detail: data });
+    }
+
     const text = data.content[0].text;
-    const suggestions = JSON.parse(text);
+    console.log("Claude text:", text);
+
+    // Strip any markdown backticks just in case
+    const clean = text.replace(/```json|```/g, "").trim();
+    const suggestions = JSON.parse(clean);
 
     res.status(200).json({ suggestions });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "AI request failed" });
+    console.error("Handler error:", err);
+    res.status(500).json({ error: err.message });
   }
 }
