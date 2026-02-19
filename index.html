@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Arc Pay — USDC Payment Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a26;
+      --border: #2a2a3a;
+      --accent: #00d4ff;
+      --accent2: #7b6cff;
+      --usdc: #2775ca;
+      --eurc: #0052b4;
+      --green: #00e5a0;
+      --red: #ff4d6d;
+      --text: #e8e8f0;
+      --muted: #6b6b8a;
+      --card-glow: rgba(0, 212, 255, 0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 20px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span { color: var(--accent); }
+
+    .header-badge {
+      font-size: 10px;
+      background: rgba(0,212,255,0.1);
+      border: 1px solid rgba(0,212,255,0.3);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Connect button */
+    #connectBtn {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 22px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+
+    #connectBtn:hover { opacity: 0.85; transform: translateY(-1px); }
+    #connectBtn:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+    /* Wallet bar */
+    #walletBar {
+      display: none;
+      align-items: center;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 12px;
+    }
+
+    .wallet-addr {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .balance-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface2);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+    }
+
+    .balance-pill .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+    }
+
+    .dot-usdc { background: #2775ca; }
+    .dot-eurc { background: #0052b4; }
+
+    /* Grid layout */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .span-2 { grid-column: span 2; }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+
+    .card:hover { border-color: rgba(0,212,255,0.2); }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title .icon { font-size: 14px; }
+
+    /* Form elements */
+    label {
+      display: block;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 14px;
+    }
+
+    input:focus, select:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--muted); }
+    select option { background: var(--surface2); }
+
+    .btn {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 11px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #000;
+    }
+
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { border-color: var(--accent); }
+
+    .btn-green {
+      background: var(--green);
+      color: #000;
+    }
+
+    .btn-green:hover { opacity: 0.85; }
+
+    .btn + .btn { margin-top: 8px; }
+
+    /* Token selector */
+    .token-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .token-tab {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .token-tab.active-usdc {
+      background: rgba(39,117,202,0.15);
+      border-color: #2775ca;
+      color: #5aa3e8;
+    }
+
+    .token-tab.active-eurc {
+      background: rgba(0,82,180,0.15);
+      border-color: #0052b4;
+      color: #5b8fdd;
+    }
+
+    /* Transaction history */
+    .tx-list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
+
+    .tx-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 12px;
+      border: 1px solid transparent;
+      transition: border-color 0.2s;
+      cursor: pointer;
+    }
+
+    .tx-item:hover { border-color: var(--border); }
+
+    .tx-left { display: flex; align-items: center; gap: 10px; }
+
+    .tx-icon {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .tx-icon.sent { background: rgba(255,77,109,0.15); }
+    .tx-icon.received { background: rgba(0,229,160,0.15); }
+
+    .tx-addr { color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+    .tx-amount { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; }
+    .tx-amount.sent { color: var(--red); }
+    .tx-amount.received { color: var(--green); }
+
+    .tx-time { color: var(--muted); font-size: 10px; }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 32px 0;
+    }
+
+    /* Address book */
+    .contact-list { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .contact-item:hover { border-color: var(--accent); }
+
+    .contact-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 12px; }
+    .contact-addr { color: var(--muted); font-size: 10px; margin-top: 2px; }
+
+    .contact-actions { display: flex; gap: 6px; }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .icon-btn:hover { opacity: 1; }
+
+    /* QR Code */
+    #qrCanvas {
+      display: block;
+      margin: 0 auto;
+      border-radius: 8px;
+      image-rendering: pixelated;
+    }
+
+    .qr-address {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 10px;
+      word-break: break-all;
+    }
+
+    /* Payment link */
+    .payment-link-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 11px;
+      color: var(--accent);
+      word-break: break-all;
+      margin-bottom: 10px;
+      min-height: 48px;
+    }
+
+    /* Status */
+    #status {
+      margin-top: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      display: none;
+    }
+
+    .success { background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.3); color: var(--green); display: block !important; }
+    .error { background: rgba(255,77,109,0.1); border: 1px solid rgba(255,77,109,0.3); color: var(--red); display: block !important; }
+    .info { background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2); color: var(--accent); display: block !important; }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
+    }
+
+    .row { display: flex; gap: 8px; }
+    .row input { margin-bottom: 0; }
+    .row .btn { width: auto; padding: 10px 16px; white-space: nowrap; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* Connect overlay */
+    #connectOverlay {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .connect-big-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .connect-subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .connect-big-btn {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 16px 48px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+
+    .connect-big-btn:hover { opacity: 0.85; transform: translateY(-2px); }
+
+    .features-list {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+
+    .feature-item {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .feature-item span { color: var(--accent); }
+
+    #dashboard { display: none; }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card { animation: fadeIn 0.3s ease forwards; }
+
+    /* Add contact form */
+    .add-contact-form {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .add-contact-form.show { display: block; }
+    .add-contact-form input { margin-bottom: 8px; }
+    .add-contact-form input:last-of-type { margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="logo">Arc<span>Pay</span></div>
+      <div class="header-badge">Testnet</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div id="walletBar">
+        <span class="wallet-addr" id="walletAddr"></span>
+        <div class="balance-pill"><div class="dot dot-usdc"></div><span id="usdcBal">0.00 USDC</span></div>
+        <div class="balance-pill"><div class="dot dot-eurc"></div><span id="eurcBal">0.00 EURC</span></div>
+      </div>
+      <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+    </div>
+  </header>
+
+  <!-- Connect screen -->
+  <div id="connectOverlay">
+    <div class="connect-big-title">Arc Pay</div>
+    <div class="connect-subtitle">
+      A full-featured USDC & EURC payment dashboard<br>built on Arc Testnet by Circle.
+    </div>
+    <button class="connect-big-btn" onclick="connectWallet()">⚡ Connect Wallet</button>
+    <div class="features-list">
+      <div class="feature-item"><span>💸</span> Send USDC & EURC</div>
+      <div class="feature-item"><span>📋</span> Address Book</div>
+      <div class="feature-item"><span>📜</span> Tx History</div>
+      <div class="feature-item"><span>🔗</span> Payment Links</div>
+      <div class="feature-item"><span>📱</span> QR Codes</div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+
+    <!-- Row 1: Send + Address Book -->
+    <div class="grid">
+
+      <!-- Send Card -->
+      <div class="card">
+        <div class="card-title"><span class="icon">💸</span> Send Payment</div>
+
+        <!-- Token selector -->
+        <div class="token-tabs">
+          <div class="token-tab active-usdc" id="tab-usdc" onclick="selectToken('USDC')">USDC</div>
+          <div class="token-tab" id="tab-eurc" onclick="selectToken('EURC')">EURC</div>
+        </div>
+
+        <label>Recipient Address</label>
+        <input id="recipient" type="text" placeholder="0x..." />
+
+        <label>Amount</label>
+        <input id="amount" type="number" placeholder="e.g. 10" step="0.01" />
+
+        <button class="btn btn-primary" onclick="sendToken()">Send →</button>
+        <div id="status"></div>
+      </div>
+
+      <!-- Address Book -->
+      <div class="card">
+        <div class="card-title"><span class="icon">📋</span> Address Book</div>
+
+        <!-- Add contact toggle -->
+        <button class="btn btn-secondary" onclick="toggleAddContact()" style="margin-bottom:12px;">+ Add Contact</button>
+
+        <div class="add-contact-form" id="addContactForm">
+          <label>Name</label>
+          <input id="contactName" type="text" placeholder="e.g. Alice" />
+          <label>Wallet Address</label>
+          <input id="contactAddr" type="text" placeholder="0x..." />
+          <button class="btn btn-green" onclick="saveContact()">Save Contact</button>
+        </div>
+
+        <div class="contact-list" id="contactList">
+          <div class="empty-state">No contacts yet.<br>Add one above!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Staking -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title"><span class="icon">🏦</span> USDC Staking Pool — 10% APY</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
+        <div style="background:var(--surface2);border-radius:10px;padding:14px;"><div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Your Stake</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent);" id="stakedAmount">0.00</div><div style="font-size:10px;color:var(--muted);">USDC</div></div>
+        <div style="background:var(--surface2);border-radius:10px;padding:14px;"><div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Pending Rewards</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green);" id="pendingReward">0.000000</div><div style="font-size:10px;color:var(--muted);">USDC</div></div>
+        <div style="background:var(--surface2);border-radius:10px;padding:14px;"><div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Total Pool</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;" id="totalStaked">0.00</div><div style="font-size:10px;color:var(--muted);">USDC</div></div>
+        <div style="background:var(--surface2);border-radius:10px;padding:14px;"><div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Staking Since</div><div style="font-size:12px;font-weight:500;margin-top:6px;" id="stakingSince">Not staking</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-end;"><div style="flex:1;"><label>Amount to Stake</label><input id="stakeAmount" type="number" placeholder="e.g. 100" style="margin-bottom:0;" /></div><button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="stakeUSDC()">Stake →</button><button class="btn btn-secondary" style="width:auto;padding:10px 20px;" onclick="claimRewardsOnly()">Claim Rewards</button><button class="btn" style="width:auto;padding:10px 20px;background:var(--red);color:#fff;" onclick="unstakeUSDC()">Unstake All</button></div>
+      <div id="stakingStatus" style="margin-top:10px;padding:10px 14px;border-radius:8px;font-size:12px;display:none;"></div>
+    </div>
+
+    <!-- Row 3: Tx History + QR + Payment Link -->
+    <div class="grid-3">
+
+      <!-- Transaction History -->
+      <div class="card span-2">
+        <div class="card-title"><span class="icon">📜</span> Transaction History</div>
+        <div class="tx-list" id="txList">
+          <div class="empty-state">No transactions yet.<br>Send something to see history here!</div>
+        </div>
+      </div>
+
+      <!-- QR + Payment Link -->
+      <div class="card">
+        <div class="card-title"><span class="icon">📱</span> Receive</div>
+
+        <canvas id="qrCanvas" width="160" height="160"></canvas>
+        <div class="qr-address" id="qrAddress">Connect wallet to generate QR</div>
+
+        <div class="divider"></div>
+
+        <div class="card-title" style="margin-bottom:10px;"><span class="icon">🔗</span> Payment Link</div>
+        <label>Amount to Request</label>
+        <div class="row" style="margin-bottom:10px;">
+          <input id="requestAmount" type="number" placeholder="10" style="margin-bottom:0;" />
+          <button class="btn btn-secondary" onclick="generatePaymentLink()" style="width:auto;padding:10px 14px;">Gen</button>
+        </div>
+        <div class="payment-link-box" id="paymentLink">Enter amount and click Gen</div>
+        <button class="btn btn-secondary" onclick="copyPaymentLink()">📋 Copy Link</button>
+      </div>
+    </div>
+
+  </div><!-- /dashboard -->
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
