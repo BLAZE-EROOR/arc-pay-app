@@ -1,7 +1,6 @@
 // ─── Arc Testnet Config ───────────────────────────────────────────────────────
 const ARC_CHAIN_ID_DECIMAL = 5042002;
 const ARC_CHAIN_ID_HEX = "0x4CE052";
-const ARC_RPC = "https://rpc.testnet.arc.network";
 
 const USDC_ADDRESS = "0x3600000000000000000000000000000000000000";
 const EURC_ADDRESS = "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a";
@@ -44,30 +43,19 @@ async function connectWallet() {
     provider = new ethers.BrowserProvider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
 
-    // Auto-add Arc Testnet if not present
+    // Try to switch to Arc Testnet silently
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: ARC_CHAIN_ID_HEX }]
       });
-    } catch (switchError) {
-      if (switchError.code === 4902 || switchError.code === -32603) {
-        await window.ethereum.request({
-           method: "wallet_addEthereumChain",
-           params: [{
-             chainId: ARC_CHAIN_ID_HEX,
-             chainName: "Arc Testnet",
-             nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 6 },
-             rpcUrls: ["https://rpc.testnet.arc.network"],
-             blockExplorerUrls: ["https://testnet.arcscan.app"]
-            }]
-         });
-      }
+    } catch (e) {
+      // Already on correct chain or user rejected - continue
     }
 
     const network = await provider.getNetwork();
     if (Number(network.chainId) !== ARC_CHAIN_ID_DECIMAL) {
-      alert("Please switch to Arc Testnet and try again.");
+      alert("Please switch to Arc Testnet in Rabby and try again.");
       document.getElementById("connectBtn").innerText = "Connect Wallet";
       document.getElementById("connectBtn").disabled = false;
       return;
@@ -107,16 +95,12 @@ async function connectWallet() {
   }
 }
 
-// ─── Auto Connect ─────────────────────────────────────────────────────────────
+// ─── Auto Connect on Load ─────────────────────────────────────────────────────
 window.onload = function() {
   if (localStorage.getItem("arcpay_connected") === "true" && window.ethereum) {
     window.ethereum.request({ method: "eth_accounts" }).then(function(accounts) {
-      if (accounts.length > 0) {
-        connectWallet();
-      }
-    }).catch(function(e) {
-      console.log("Auto-connect failed:", e);
-    });
+      if (accounts.length > 0) connectWallet();
+    }).catch(function(e) { console.log("Auto-connect failed:", e); });
   }
 };
 
@@ -147,7 +131,7 @@ async function sendToken() {
     if (!recipient || !amount) { showStatus("Please fill in both fields.", "error"); return; }
     if (!ethers.isAddress(recipient)) { showStatus("Invalid wallet address!", "error"); return; }
     if (parseFloat(amount) <= 0) { showStatus("Amount must be greater than 0.", "error"); return; }
-    showStatus(`Sending ${amount} ${selectedToken}... confirm in Rabby.`, "info");
+    showStatus("Sending " + amount + " " + selectedToken + "... confirm in Rabby.", "info");
     const contract = selectedToken === "USDC" ? usdcContract : eurcContract;
     const tx = await contract.transfer(recipient, ethers.parseUnits(amount, 6));
     showStatus("Transaction sent! Waiting for confirmation...", "info");
@@ -158,7 +142,7 @@ async function sendToken() {
     localStorage.setItem("arcpay_txhistory", JSON.stringify(txHistory));
     renderTxHistory();
     await refreshBalances();
-    showStatus(`✅ Sent ${amount} ${selectedToken}! <a href="https://testnet.arcscan.app/tx/${tx.hash}" target="_blank" style="color:inherit;">View on Explorer ↗</a>`, "success");
+    showStatus("Sent " + amount + " " + selectedToken + "! <a href='https://testnet.arcscan.app/tx/" + tx.hash + "' target='_blank' style='color:inherit;'>View on Explorer</a>", "success");
     document.getElementById("recipient").value = "";
     document.getElementById("amount").value = "";
   } catch (err) { showStatus("Error: " + err.message, "error"); }
@@ -171,24 +155,18 @@ function renderTxHistory() {
     list.innerHTML = '<div class="empty-state">No transactions yet.<br>Send something to see history here!</div>';
     return;
   }
-  list.innerHTML = txHistory.map(tx => {
+  list.innerHTML = txHistory.map(function(tx) {
     const isSent = tx.type === "sent";
     const addr = tx.address ? tx.address.slice(0,6) + "..." + tx.address.slice(-4) : "Unknown";
     const timeStr = new Date(tx.time).toLocaleString();
-    return `
-      <div class="tx-item" onclick="window.open('https://testnet.arcscan.app/tx/${tx.hash}','_blank')">
-        <div class="tx-left">
-          <div class="tx-icon ${isSent ? 'sent' : 'received'}">${isSent ? '↑' : '↓'}</div>
-          <div>
-            <div>${isSent ? 'Sent to' : 'Received from'} <b>${addr}</b></div>
-            <div class="tx-addr">${tx.hash.slice(0,10)}...${tx.hash.slice(-6)}</div>
-          </div>
-        </div>
-        <div style="text-align:right;">
-          <div class="tx-amount ${isSent ? 'sent' : 'received'}">${isSent ? '-' : '+'}${tx.amount} ${tx.token}</div>
-          <div class="tx-time">${timeStr}</div>
-        </div>
-      </div>`;
+    return '<div class="tx-item" onclick="window.open(\'https://testnet.arcscan.app/tx/' + tx.hash + '\',\'_blank\')">'
+      + '<div class="tx-left">'
+      + '<div class="tx-icon ' + (isSent ? 'sent' : 'received') + '">' + (isSent ? '↑' : '↓') + '</div>'
+      + '<div><div>' + (isSent ? 'Sent to' : 'Received from') + ' <b>' + addr + '</b></div>'
+      + '<div class="tx-addr">' + tx.hash.slice(0,10) + '...' + tx.hash.slice(-6) + '</div></div></div>'
+      + '<div style="text-align:right;">'
+      + '<div class="tx-amount ' + (isSent ? 'sent' : 'received') + '">' + (isSent ? '-' : '+') + tx.amount + ' ' + tx.token + '</div>'
+      + '<div class="tx-time">' + timeStr + '</div></div></div>';
   }).join("");
 }
 
@@ -226,17 +204,16 @@ function renderContacts() {
     list.innerHTML = '<div class="empty-state">No contacts yet.<br>Add one above!</div>';
     return;
   }
-  list.innerHTML = contacts.map((c, i) => `
-    <div class="contact-item">
-      <div onclick="useContact('${c.addr}')" style="flex:1;">
-        <div class="contact-name">${c.name}</div>
-        <div class="contact-addr">${c.addr.slice(0,8)}...${c.addr.slice(-6)}</div>
-      </div>
-      <div class="contact-actions">
-        <button class="icon-btn" onclick="useContact('${c.addr}')" title="Send to">💸</button>
-        <button class="icon-btn" onclick="deleteContact(${i})" title="Delete">🗑️</button>
-      </div>
-    </div>`).join("");
+  list.innerHTML = contacts.map(function(c, i) {
+    return '<div class="contact-item">'
+      + '<div onclick="useContact(\'' + c.addr + '\')" style="flex:1;">'
+      + '<div class="contact-name">' + c.name + '</div>'
+      + '<div class="contact-addr">' + c.addr.slice(0,8) + '...' + c.addr.slice(-6) + '</div></div>'
+      + '<div class="contact-actions">'
+      + '<button class="icon-btn" onclick="useContact(\'' + c.addr + '\')" title="Send to">💸</button>'
+      + '<button class="icon-btn" onclick="deleteContact(' + i + ')" title="Delete">🗑️</button>'
+      + '</div></div>';
+  }).join("");
 }
 
 // ─── QR Code ──────────────────────────────────────────────────────────────────
@@ -275,7 +252,7 @@ function generatePaymentLink() {
   const amount = document.getElementById("requestAmount").value.trim();
   if (!amount || !userAddress) { document.getElementById("paymentLink").innerText = "Connect wallet and enter amount first."; return; }
   const base = window.location.href.split("?")[0];
-  document.getElementById("paymentLink").innerText = `${base}?to=${userAddress}&amount=${amount}&token=${selectedToken}`;
+  document.getElementById("paymentLink").innerText = base + "?to=" + userAddress + "&amount=" + amount + "&token=" + selectedToken;
 }
 
 function copyPaymentLink() {
@@ -284,7 +261,7 @@ function copyPaymentLink() {
     navigator.clipboard.writeText(link);
     const btn = event.target;
     btn.innerText = "✅ Copied!";
-    setTimeout(() => btn.innerText = "📋 Copy Link", 2000);
+    setTimeout(function() { btn.innerText = "📋 Copy Link"; }, 2000);
   }
 }
 
@@ -295,7 +272,7 @@ function handleIncomingPaymentLink() {
     document.getElementById("recipient").value = to;
     document.getElementById("amount").value = amount;
     if (token) selectToken(token);
-    showStatus(`💡 Payment link detected! Sending ${amount} ${token || "USDC"} to ${to.slice(0,6)}...`, "info");
+    showStatus("Payment link detected! Sending " + amount + " " + (token || "USDC") + " to " + to.slice(0,6) + "...", "info");
   }
 }
 
@@ -324,7 +301,7 @@ async function stakeUSDC() {
     await tx.wait();
     await refreshStaking();
     await refreshBalances();
-    showStakingStatus(`✅ Staked ${amount} USDC! Earning 10% APY.`, "success");
+    showStakingStatus("Staked " + amount + " USDC! Earning 10% APY.", "success");
     document.getElementById("stakeAmount").value = "";
   } catch (e) { showStakingStatus("Error: " + e.message, "error"); }
 }
@@ -336,7 +313,7 @@ async function unstakeUSDC() {
     await tx.wait();
     await refreshStaking();
     await refreshBalances();
-    showStakingStatus("✅ Unstaked! Principal + rewards returned to wallet.", "success");
+    showStakingStatus("Unstaked! Principal + rewards returned to wallet.", "success");
   } catch (e) { showStakingStatus("Error: " + e.message, "error"); }
 }
 
@@ -347,7 +324,7 @@ async function claimRewardsOnly() {
     await tx.wait();
     await refreshStaking();
     await refreshBalances();
-    showStakingStatus("✅ Rewards claimed to your wallet!", "success");
+    showStakingStatus("Rewards claimed to your wallet!", "success");
   } catch (e) { showStakingStatus("Error: " + e.message, "error"); }
 }
 
@@ -374,23 +351,11 @@ async function getAISuggestions() {
       pendingRewards: document.getElementById("pendingReward").innerText,
       stakingSince: document.getElementById("stakingSince").innerText,
       txCount: txHistory.length,
-      lastTx: txHistory.length > 0 ? `${txHistory[0].type} ${txHistory[0].amount} ${txHistory[0].token}` : "No transactions yet"
+      lastTx: txHistory.length > 0 ? txHistory[0].type + " " + txHistory[0].amount + " " + txHistory[0].token : "No transactions yet"
     };
-    const prompt = `You are an AI assistant for a USDC payment and staking app on Arc Testnet by Circle.
-Analyze this wallet data and give 2-3 short actionable suggestions.
-Be specific with numbers. Keep each suggestion to 1-2 sentences.
-Respond ONLY with a valid JSON array, no markdown, no backticks, no extra text.
-Example: [{"icon":"💡","text":"suggestion here"},{"icon":"📈","text":"another suggestion"}]
-Wallet Data:
-- USDC Balance: ${walletData.usdcBalance}
-- EURC Balance: ${walletData.eurcBalance}
-- Staked Amount: ${walletData.stakedAmount} USDC
-- Pending Rewards: ${walletData.pendingRewards} USDC
-- Staking Since: ${walletData.stakingSince}
-- Total Transactions: ${walletData.txCount}
-- Last Transaction: ${walletData.lastTx}`;
+    const prompt = "You are an AI assistant for a USDC payment and staking app on Arc Testnet by Circle.\nAnalyze this wallet data and give 2-3 short actionable suggestions.\nBe specific with numbers. Keep each suggestion to 1-2 sentences.\nRespond ONLY with a valid JSON array, no markdown, no backticks, no extra text.\nExample: [{\"icon\":\"💡\",\"text\":\"suggestion here\"},{\"icon\":\"📈\",\"text\":\"another suggestion\"}]\nWallet Data:\n- USDC Balance: " + walletData.usdcBalance + "\n- EURC Balance: " + walletData.eurcBalance + "\n- Staked Amount: " + walletData.stakedAmount + " USDC\n- Pending Rewards: " + walletData.pendingRewards + " USDC\n- Staking Since: " + walletData.stakingSince + "\n- Total Transactions: " + walletData.txCount + "\n- Last Transaction: " + walletData.lastTx;
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=" + GEMINI_API_KEY,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -402,18 +367,17 @@ Wallet Data:
     );
     const data = await response.json();
     document.getElementById("aiLoading").style.display = "none";
-    if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
+    if (!data.candidates || !data.candidates[0].content) {
       document.getElementById("aiSuggestions").innerHTML = '<div style="color:var(--red);font-size:12px;">Error: ' + JSON.stringify(data) + '</div>';
       return;
     }
-    const text = data.candidates[0].content.parts[0].text.trim();
-    const clean = text.replace(/```json|```/g, "").trim();
-    const suggestions = JSON.parse(clean);
-    document.getElementById("aiSuggestions").innerHTML = suggestions.map(function(s) { return `
-      <div style="display:flex;align-items:flex-start;gap:12px;background:var(--surface2);border-radius:10px;padding:14px;border:1px solid var(--border);">
-        <div style="font-size:24px;flex-shrink:0;">${s.icon}</div>
-        <div style="font-size:13px;line-height:1.6;color:var(--text);">${s.text}</div>
-      </div>`; }).join("");
+    const text = data.candidates[0].content.parts[0].text.trim().replace(/```json|```/g, "").trim();
+    const suggestions = JSON.parse(text);
+    document.getElementById("aiSuggestions").innerHTML = suggestions.map(function(s) {
+      return '<div style="display:flex;align-items:flex-start;gap:12px;background:var(--surface2);border-radius:10px;padding:14px;border:1px solid var(--border);">'
+        + '<div style="font-size:24px;flex-shrink:0;">' + s.icon + '</div>'
+        + '<div style="font-size:13px;line-height:1.6;color:var(--text);">' + s.text + '</div></div>';
+    }).join("");
   } catch (err) {
     document.getElementById("aiLoading").style.display = "none";
     document.getElementById("aiSuggestions").innerHTML = '<div style="color:var(--red);font-size:12px;">Error: ' + err.message + '</div>';
