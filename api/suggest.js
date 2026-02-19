@@ -3,9 +3,24 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { walletData } = req.body;
+  try {
+    // Parse body manually if needed
+    let body = req.body;
+    if (typeof body === "string") {
+      body = JSON.parse(body);
+    }
 
-  const prompt = `You are an AI assistant for a USDC payment and staking app on Arc Testnet by Circle.
+    const walletData = body?.walletData;
+    if (!walletData) {
+      return res.status(400).json({ error: "Missing walletData" });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: "API key not found" });
+    }
+
+    const prompt = `You are an AI assistant for a USDC payment and staking app on Arc Testnet by Circle.
 Analyze this wallet data and give 2-3 short actionable suggestions.
 Be specific with numbers. Keep each suggestion to 1-2 sentences.
 Respond ONLY with a valid JSON array, no markdown, no backticks.
@@ -19,12 +34,6 @@ Wallet Data:
 - Staking Since: ${walletData.stakingSince}
 - Total Transactions: ${walletData.txCount}
 - Last Transaction: ${walletData.lastTx}`;
-
-  try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: "API key not found" });
-    }
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -50,8 +59,9 @@ Wallet Data:
     const suggestions = JSON.parse(clean);
 
     res.status(200).json({ suggestions });
+
   } catch (err) {
-    console.error(err);
+    console.error("Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 }
