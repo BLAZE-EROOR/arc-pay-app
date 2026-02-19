@@ -1,0 +1,49 @@
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { walletData } = req.body;
+
+  const prompt = `You are an AI assistant for a USDC payment and staking app built on Arc Testnet (by Circle). 
+Analyze this user's wallet data and give 2-3 short, actionable smart suggestions.
+Be specific with numbers. Be encouraging but honest. Keep each suggestion to 1-2 sentences max.
+Format your response as a JSON array of objects with "icon" (emoji) and "text" fields.
+
+Wallet Data:
+- USDC Balance: ${walletData.usdcBalance} USDC
+- EURC Balance: ${walletData.eurcBalance} EURC
+- Staked Amount: ${walletData.stakedAmount} USDC
+- Pending Rewards: ${walletData.pendingRewards} USDC
+- Staking Since: ${walletData.stakingSince}
+- Total Transactions: ${walletData.txCount}
+- Last Transaction: ${walletData.lastTx}
+
+Respond ONLY with a valid JSON array, no other text. Example format:
+[{"icon":"💡","text":"Your suggestion here"},{"icon":"📈","text":"Another suggestion"}]`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-opus-4-6",
+        max_tokens: 500,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content[0].text;
+    const suggestions = JSON.parse(text);
+
+    res.status(200).json({ suggestions });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "AI request failed" });
+  }
+}

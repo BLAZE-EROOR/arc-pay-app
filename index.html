@@ -625,7 +625,18 @@
         <button class="btn btn-secondary" onclick="copyPaymentLink()">📋 Copy Link</button>
       </div>
     </div>
-
+<!-- AI Suggestions -->
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title"><span class="icon">🤖</span> AI Smart Suggestions</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="font-size:12px;color:var(--muted);">Personalized recommendations based on your wallet activity</div>
+        <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="getAISuggestions()">✨ Get Suggestions</button>
+      </div>
+      <div id="aiLoading" style="display:none;text-align:center;padding:20px;color:var(--muted);font-size:13px;">
+        🤖 Analyzing your wallet...
+      </div>
+      <div id="aiSuggestions" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
   </div><!-- /dashboard -->
 </div>
 
