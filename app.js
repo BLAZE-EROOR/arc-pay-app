@@ -47,9 +47,39 @@ async function connectWallet() {
     provider = new ethers.BrowserProvider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
 
+    // Auto-add Arc Testnet if not present
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x4CE052" }] // 5042002 in hex
+      });
+    } catch (switchError) {
+      // Chain not added yet — add it automatically
+      if (switchError.code === 4902 || switchError.code === -32603) {
+        try {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+              chainId: "0x4CE052",
+              chainName: "Arc Testnet",
+              nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
+              rpcUrls: ["https://rpc.testnet.arc.network"],
+              blockExplorerUrls: ["https://testnet.arcscan.app"]
+            }]
+          });
+        } catch (addError) {
+          alert("Failed to add Arc Testnet: " + addError.message);
+          document.getElementById("connectBtn").innerText = "Connect Wallet";
+          document.getElementById("connectBtn").disabled = false;
+          return;
+        }
+      }
+    }
+
+    // Verify correct network
     const network = await provider.getNetwork();
     if (Number(network.chainId) !== ARC_CHAIN_ID_DECIMAL) {
-      alert("Please switch to Arc Testnet in your Rabby wallet first, then click Connect again.");
+      alert("Please switch to Arc Testnet in your wallet and try again.");
       document.getElementById("connectBtn").innerText = "Connect Wallet";
       document.getElementById("connectBtn").disabled = false;
       return;
@@ -63,6 +93,35 @@ async function connectWallet() {
     stakingContract = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
 
     await refreshBalances();
+
+    // Show dashboard
+    document.getElementById("connectOverlay").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("walletBar").style.display = "flex";
+    document.getElementById("connectBtn").innerText = "✅ Connected";
+
+    document.getElementById("walletAddr").innerText =
+      userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+
+    generateQR(userAddress);
+    document.getElementById("qrAddress").innerText = userAddress;
+    document.getElementById("faucetAddr").value = userAddress;
+
+    renderContacts();
+    renderTxHistory();
+    await refreshStaking();
+    handleIncomingPaymentLink();
+
+    // Save connection state
+    localStorage.setItem("arcpay_connected", "true");
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("connectBtn").innerText = "Connect Wallet";
+    document.getElementById("connectBtn").disabled = false;
+    alert("Error: " + err.message);
+  }
+}
 
     // Show dashboard
     document.getElementById("connectOverlay").style.display = "none";
@@ -427,3 +486,17 @@ function showStakingStatus(message, type) {
   const el = document.getElementById("stakingStatus");
   el.innerHTML = message; el.className = type;
 }
+// ─── Auto Connect on Page Load ────────────────────────────────────────────────
+window.addEventListener("load", async () => {
+  if (localStorage.getItem("arcpay_connected") === "true" && window.ethereum) {
+    try {
+      // Check if already authorized (no popup)
+      const accounts = await window.ethereum.request({ method: "eth_accounts" });
+      if (accounts.length > 0) {
+        await connectWallet();
+      }
+    } catch (e) {
+      console.log("Auto-connect failed:", e);
+    }
+  }
+});
