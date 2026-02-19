@@ -77,15 +77,19 @@ async function connectWallet() {
     document.getElementById("walletAddr").innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
 
     generateQR(userAddress);
-    document.getElementById("qrAddress").innerText = userAddress;
-    document.getElementById("faucetAddr").value = userAddress;
 
-    renderContacts();
-    renderTxHistory();
-    await refreshStaking();
-    handleIncomingPaymentLink();
+var qrEl = document.getElementById("qrAddress");
+if (qrEl) qrEl.innerText = userAddress;
 
-    localStorage.setItem("arcpay_connected", "true");
+var faucetEl = document.getElementById("faucetAddr");
+if (faucetEl) faucetEl.value = userAddress;
+
+renderContacts();
+renderTxHistory();
+await refreshStaking();
+handleIncomingPaymentLink();
+
+localStorage.setItem("arcpay_connected", "true");
 
   } catch (err) {
     console.error(err);
