@@ -487,16 +487,14 @@ function showStakingStatus(message, type) {
   el.innerHTML = message; el.className = type;
 }
 // ─── Auto Connect on Page Load ────────────────────────────────────────────────
-window.addEventListener("load", async () => {
+window.onload = function() {
   if (localStorage.getItem("arcpay_connected") === "true" && window.ethereum) {
-    try {
-      // Check if already authorized (no popup)
-      const accounts = await window.ethereum.request({ method: "eth_accounts" });
+    window.ethereum.request({ method: "eth_accounts" }).then(function(accounts) {
       if (accounts.length > 0) {
-        await connectWallet();
+        connectWallet();
       }
-    } catch (e) {
+    }).catch(function(e) {
       console.log("Auto-connect failed:", e);
-    }
+    });
   }
-});
+};
