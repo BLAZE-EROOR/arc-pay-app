@@ -387,10 +387,17 @@ Wallet Data:
     document.getElementById("aiLoading").style.display = "none";
 
     if (!data.candidates || data.candidates.length === 0) {
-      document.getElementById("aiSuggestions").innerHTML =
-        '<div style="color:var(--red);font-size:12px;">No response from AI. Try again.</div>';
-      return;
-    }
+  document.getElementById("aiSuggestions").innerHTML =
+    '<div style="color:var(--red);font-size:12px;">Error: ' + JSON.stringify(data) + '</div>';
+  return;
+}
+
+// Check if content was blocked
+if (!data.candidates[0].content) {
+  document.getElementById("aiSuggestions").innerHTML =
+    '<div style="color:var(--red);font-size:12px;">Blocked: ' + JSON.stringify(data.candidates[0]) + '</div>';
+  return;
+}
 
     const text = data.candidates[0].content.parts[0].text.trim();
     const clean = text.replace(/```json|```/g, "").trim();
