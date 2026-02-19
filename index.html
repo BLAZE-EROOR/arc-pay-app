@@ -582,20 +582,7 @@
       </div>
     </div>
 
-    <!-- Row 2: Staking -->
-    <div class="card" style="margin-bottom:16px;">
-      <div class="card-title"><span class="icon">🏦</span> USDC Staking Pool — 10% APY</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
-        <div style="background:var(--surface2);border-radius:10px;padding:14px;"><div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Your Stake</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent);" id="stakedAmount">0.00</div><div style="font-size:10px;color:var(--muted);">USDC</div></div>
-        <div style="background:var(--surface2);border-radius:10px;padding:14px;"><div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Pending Rewards</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green);" id="pendingReward">0.000000</div><div style="font-size:10px;color:var(--muted);">USDC</div></div>
-        <div style="background:var(--surface2);border-radius:10px;padding:14px;"><div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Total Pool</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;" id="totalStaked">0.00</div><div style="font-size:10px;color:var(--muted);">USDC</div></div>
-        <div style="background:var(--surface2);border-radius:10px;padding:14px;"><div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Staking Since</div><div style="font-size:12px;font-weight:500;margin-top:6px;" id="stakingSince">Not staking</div></div>
-      </div>
-      <div style="display:flex;gap:12px;align-items:flex-end;"><div style="flex:1;"><label>Amount to Stake</label><input id="stakeAmount" type="number" placeholder="e.g. 100" style="margin-bottom:0;" /></div><button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="stakeUSDC()">Stake →</button><button class="btn btn-secondary" style="width:auto;padding:10px 20px;" onclick="claimRewardsOnly()">Claim Rewards</button><button class="btn" style="width:auto;padding:10px 20px;background:var(--red);color:#fff;" onclick="unstakeUSDC()">Unstake All</button></div>
-      <div id="stakingStatus" style="margin-top:10px;padding:10px 14px;border-radius:8px;font-size:12px;display:none;"></div>
-    </div>
-
-    <!-- Row 3: Tx History + QR + Payment Link -->
+    <!-- Row 2: Tx History + QR + Payment Link -->
     <div class="grid-3">
 
       <!-- Transaction History -->
@@ -625,22 +612,40 @@
         <button class="btn btn-secondary" onclick="copyPaymentLink()">📋 Copy Link</button>
       </div>
     </div>
-<!-- AI Suggestions -->
-    <div class="card" style="margin-top:16px;display:none;">
-      <div class="card-title"><span class="icon">🤖</span> AI Smart Suggestions</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <div style="font-size:12px;color:var(--muted);">Personalized recommendations based on your wallet activity</div>
-        <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="getAISuggestions()">✨ Get Suggestions</button>
+
+    <!-- Faucet -->
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title"><span class="icon">🚰</span> USDC Faucet</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        <div style="background:var(--surface2);border-radius:10px;padding:20px;text-align:center;">
+          <div style="font-size:32px;margin-bottom:8px;">💧</div>
+          <div style="font-family:Syne,sans-serif;font-weight:700;font-size:15px;margin-bottom:6px;">Get Free Testnet USDC</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;">Request free USDC from Circle's official faucet. Works on Arc Testnet. Free and instant!</div>
+          <button class="btn btn-primary" onclick="window.open('https://faucet.circle.com','_blank')" style="margin-bottom:8px;">🚰 Open Circle Faucet</button>
+          <div style="font-size:10px;color:var(--muted);margin-top:8px;">Select <b>Arc Testnet</b> and paste your address</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:10px;padding:20px;">
+          <div style="font-family:Syne,sans-serif;font-weight:700;font-size:13px;margin-bottom:14px;">📋 How to use</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;gap:10px;align-items:center;font-size:12px;"><div style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:10px;">1</div>Click Open Circle Faucet</div>
+            <div style="display:flex;gap:10px;align-items:center;font-size:12px;"><div style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:10px;">2</div>Select <b>Arc Testnet</b></div>
+            <div style="display:flex;gap:10px;align-items:center;font-size:12px;"><div style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:10px;">3</div>Select <b>USDC</b> as token</div>
+            <div style="display:flex;gap:10px;align-items:center;font-size:12px;"><div style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:10px;">4</div>Copy your address below and paste</div>
+          </div>
+        </div>
       </div>
-      <div id="aiLoading" style="display:none;text-align:center;padding:20px;color:var(--muted);font-size:13px;">
-        🤖 Analyzing your wallet...
+      <div style="display:flex;gap:12px;align-items:flex-end;">
+        <div style="flex:1;"><label>Your Wallet Address</label><input id="faucetAddr" type="text" placeholder="Connect wallet to see your address" style="margin-bottom:0;" readonly /></div>
+        <button class="btn btn-secondary" style="width:auto;padding:10px 20px;" onclick="copyFaucetAddress()">📋 Copy</button>
+        <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="refreshBalances()">🔄 Refresh</button>
       </div>
-      <div id="aiSuggestions" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
+
   </div><!-- /dashboard -->
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
 <script src="app.js"></script>
+  <div style="text-align:center;padding:24px;font-size:11px;color:var(--muted);">Built by <a href="https://www.linkedin.com/in/amanverma1005ed/" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600;">Aman Verma</a> · Powered by Arc Testnet by Circle</div>
 </body>
 </html>
