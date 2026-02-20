@@ -11,8 +11,7 @@ const ERC20_ABI = [
   "function balanceOf(address owner) view returns (uint256)",
   "function transfer(address to, uint256 amount) returns (bool)",
   "function approve(address spender, uint256 amount) returns (bool)",
-  "function decimals() view returns (uint8)",
-  "function symbol() view returns (string)"
+  "function decimals() view returns (uint8)"
 ];
 
 const STAKING_ABI = [
@@ -29,40 +28,12 @@ let selectedToken = "USDC";
 let contacts = JSON.parse(localStorage.getItem("arcpay_contacts") || "[]");
 let txHistory = JSON.parse(localStorage.getItem("arcpay_txhistory") || "[]");
 
-// ─── Connect Wallet ───────────────────────────────────────────────────────────
-async function connectWallet() {
+// ─── Wallet Connected Callback (from Web3Modal) ───────────────────────────────
+window.onWalletConnected = async function(rawProvider, address) {
   try {
-    if (!window.ethereum) {
-      alert("No wallet found! Please install Rabby or MetaMask.");
-      return;
-    }
-
-    document.getElementById("connectBtn").innerText = "Connecting...";
-    document.getElementById("connectBtn").disabled = true;
-
-    provider = new ethers.BrowserProvider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-
-    // Try to switch to Arc Testnet silently
-    try {
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: ARC_CHAIN_ID_HEX }]
-      });
-    } catch (e) {
-      // Already on correct chain or user rejected - continue
-    }
-
-    const network = await provider.getNetwork();
-    if (Number(network.chainId) !== ARC_CHAIN_ID_DECIMAL) {
-      alert("Please switch to Arc Testnet in Rabby and try again.");
-      document.getElementById("connectBtn").innerText = "Connect Wallet";
-      document.getElementById("connectBtn").disabled = false;
-      return;
-    }
-
+    provider = new ethers.BrowserProvider(rawProvider);
     signer = await provider.getSigner();
-    userAddress = await signer.getAddress();
+    userAddress = address;
 
     usdcContract = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
     eurcContract = new ethers.Contract(EURC_ADDRESS, ERC20_ABI, signer);
@@ -73,14 +44,15 @@ async function connectWallet() {
     document.getElementById("connectOverlay").style.display = "none";
     document.getElementById("dashboard").style.display = "block";
     document.getElementById("walletBar").style.display = "flex";
-    document.getElementById("connectBtn").innerText = "✅ Connected";
+    document.getElementById("connectBtn").style.display = "none";
+    document.getElementById("disconnectBtn").style.display = "block";
     document.getElementById("walletAddr").innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
 
-    generateQR(userAddress);
-    document.getElementById("qrAddress").innerText = userAddress;
-    const faucetEl = document.getElementById("faucetAddr");
+    var qrEl = document.getElementById("qrAddress");
+    if (qrEl) { generateQR(userAddress); qrEl.innerText = userAddress; }
+
+    var faucetEl = document.getElementById("faucetAddr");
     if (faucetEl) faucetEl.value = userAddress;
-    
 
     renderContacts();
     renderTxHistory();
@@ -88,22 +60,43 @@ async function connectWallet() {
     handleIncomingPaymentLink();
 
     localStorage.setItem("arcpay_connected", "true");
-
   } catch (err) {
-    console.error(err);
-    document.getElementById("connectBtn").innerText = "Connect Wallet";
-    document.getElementById("connectBtn").disabled = false;
+    console.error("Wallet connect error:", err);
     alert("Error: " + err.message);
+  }
+};
+
+window.onWalletDisconnected = function() {
+  provider = null; signer = null; userAddress = null;
+  usdcContract = null; eurcContract = null; stakingContract = null;
+  document.getElementById("connectOverlay").style.display = "block";
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("walletBar").style.display = "none";
+  document.getElementById("connectBtn").style.display = "block";
+  document.getElementById("disconnectBtn").style.display = "none";
+  document.getElementById("connectBtn").innerText = "Connect Wallet";
+  localStorage.removeItem("arcpay_connected");
+};
+
+// ─── Connect Wallet (opens Web3Modal) ────────────────────────────────────────
+function connectWallet() {
+  if (window._w3modal) {
+    window._w3modal.open();
+  } else {
+    // Fallback to injected wallet
+    setTimeout(function() {
+      if (window._w3modal) window._w3modal.open();
+    }, 1000);
   }
 }
 
-// ─── Auto Connect on Load ─────────────────────────────────────────────────────
+function disconnectWallet() {
+  if (window._w3modal) window._w3modal.disconnect();
+}
+
+// ─── Auto Connect ─────────────────────────────────────────────────────────────
 window.onload = function() {
-  if (localStorage.getItem("arcpay_connected") === "true" && window.ethereum) {
-    window.ethereum.request({ method: "eth_accounts" }).then(function(accounts) {
-      if (accounts.length > 0) connectWallet();
-    }).catch(function(e) { console.log("Auto-connect failed:", e); });
-  }
+  // Web3Modal handles auto-reconnect automatically
 };
 
 // ─── Balances ─────────────────────────────────────────────────────────────────
@@ -115,7 +108,7 @@ async function refreshBalances() {
     ]);
     document.getElementById("usdcBal").innerText = parseFloat(ethers.formatUnits(usdcBal, 6)).toFixed(2) + " USDC";
     document.getElementById("eurcBal").innerText = parseFloat(ethers.formatUnits(eurcBal, 6)).toFixed(2) + " EURC";
-  } catch (e) { console.error("Balance refresh error:", e); }
+  } catch (e) { console.error("Balance error:", e); }
 }
 
 // ─── Token Selector ───────────────────────────────────────────────────────────
@@ -133,12 +126,12 @@ async function sendToken() {
     if (!recipient || !amount) { showStatus("Please fill in both fields.", "error"); return; }
     if (!ethers.isAddress(recipient)) { showStatus("Invalid wallet address!", "error"); return; }
     if (parseFloat(amount) <= 0) { showStatus("Amount must be greater than 0.", "error"); return; }
-    showStatus("Sending " + amount + " " + selectedToken + "... confirm in Rabby.", "info");
+    showStatus("Sending " + amount + " " + selectedToken + "... confirm in wallet.", "info");
     const contract = selectedToken === "USDC" ? usdcContract : eurcContract;
     const tx = await contract.transfer(recipient, ethers.parseUnits(amount, 6));
     showStatus("Transaction sent! Waiting for confirmation...", "info");
     await tx.wait();
-    const txRecord = { hash: tx.hash, type: "sent", token: selectedToken, amount, address: recipient, time: Date.now() };
+    const txRecord = { hash: tx.hash, type: "sent", token: selectedToken, amount: amount, address: recipient, time: Date.now() };
     txHistory.unshift(txRecord);
     if (txHistory.length > 50) txHistory.pop();
     localStorage.setItem("arcpay_txhistory", JSON.stringify(txHistory));
@@ -162,12 +155,10 @@ function renderTxHistory() {
     const addr = tx.address ? tx.address.slice(0,6) + "..." + tx.address.slice(-4) : "Unknown";
     const timeStr = new Date(tx.time).toLocaleString();
     return '<div class="tx-item" onclick="window.open(\'https://testnet.arcscan.app/tx/' + tx.hash + '\',\'_blank\')">'
-      + '<div class="tx-left">'
-      + '<div class="tx-icon ' + (isSent ? 'sent' : 'received') + '">' + (isSent ? '↑' : '↓') + '</div>'
+      + '<div class="tx-left"><div class="tx-icon ' + (isSent ? 'sent' : 'received') + '">' + (isSent ? '↑' : '↓') + '</div>'
       + '<div><div>' + (isSent ? 'Sent to' : 'Received from') + ' <b>' + addr + '</b></div>'
       + '<div class="tx-addr">' + tx.hash.slice(0,10) + '...' + tx.hash.slice(-6) + '</div></div></div>'
-      + '<div style="text-align:right;">'
-      + '<div class="tx-amount ' + (isSent ? 'sent' : 'received') + '">' + (isSent ? '-' : '+') + tx.amount + ' ' + tx.token + '</div>'
+      + '<div style="text-align:right;"><div class="tx-amount ' + (isSent ? 'sent' : 'received') + '">' + (isSent ? '-' : '+') + tx.amount + ' ' + tx.token + '</div>'
       + '<div class="tx-time">' + timeStr + '</div></div></div>';
   }).join("");
 }
@@ -180,7 +171,7 @@ function saveContact() {
   const addr = document.getElementById("contactAddr").value.trim();
   if (!name || !addr) { alert("Please fill in both fields."); return; }
   if (!ethers.isAddress(addr)) { alert("Invalid wallet address!"); return; }
-  contacts.push({ name, addr });
+  contacts.push({ name: name, addr: addr });
   localStorage.setItem("arcpay_contacts", JSON.stringify(contacts));
   document.getElementById("contactName").value = "";
   document.getElementById("contactAddr").value = "";
@@ -207,8 +198,7 @@ function renderContacts() {
     return;
   }
   list.innerHTML = contacts.map(function(c, i) {
-    return '<div class="contact-item">'
-      + '<div onclick="useContact(\'' + c.addr + '\')" style="flex:1;">'
+    return '<div class="contact-item"><div onclick="useContact(\'' + c.addr + '\')" style="flex:1;">'
       + '<div class="contact-name">' + c.name + '</div>'
       + '<div class="contact-addr">' + c.addr.slice(0,8) + '...' + c.addr.slice(-6) + '</div></div>'
       + '<div class="contact-actions">'
@@ -262,7 +252,7 @@ function copyPaymentLink() {
   if (link.startsWith("http")) {
     navigator.clipboard.writeText(link);
     const btn = event.target;
-    btn.innerText = "✅ Copied!";
+    btn.innerText = "Copied!";
     setTimeout(function() { btn.innerText = "📋 Copy Link"; }, 2000);
   }
 }
@@ -286,19 +276,18 @@ async function refreshStaking() {
     document.getElementById("stakedAmount").innerText = parseFloat(ethers.formatUnits(amount, 6)).toFixed(2);
     document.getElementById("pendingReward").innerText = parseFloat(ethers.formatUnits(pending, 6)).toFixed(6);
     document.getElementById("totalStaked").innerText = parseFloat(ethers.formatUnits(total, 6)).toFixed(2);
-    document.getElementById("stakingSince").innerText = amount > 0
-      ? new Date(Number(startTime) * 1000).toLocaleString() : "Not staking";
-  } catch (e) { console.error("Staking refresh error:", e); }
+    document.getElementById("stakingSince").innerText = amount > 0 ? new Date(Number(startTime) * 1000).toLocaleString() : "Not staking";
+  } catch (e) { console.error("Staking error:", e); }
 }
 
 async function stakeUSDC() {
   try {
     const amount = document.getElementById("stakeAmount").value.trim();
     if (!amount || parseFloat(amount) <= 0) { showStakingStatus("Enter a valid amount.", "error"); return; }
-    showStakingStatus("Step 1/2: Approving USDC... confirm in Rabby.", "info");
+    showStakingStatus("Step 1/2: Approving USDC... confirm in wallet.", "info");
     const approveTx = await usdcContract.approve(STAKING_ADDRESS, ethers.parseUnits(amount, 6));
     await approveTx.wait();
-    showStakingStatus("Step 2/2: Staking USDC... confirm in Rabby.", "info");
+    showStakingStatus("Step 2/2: Staking USDC... confirm in wallet.", "info");
     const tx = await stakingContract.stake(ethers.parseUnits(amount, 6));
     await tx.wait();
     await refreshStaking();
@@ -310,7 +299,7 @@ async function stakeUSDC() {
 
 async function unstakeUSDC() {
   try {
-    showStakingStatus("Unstaking... confirm in Rabby.", "info");
+    showStakingStatus("Unstaking... confirm in wallet.", "info");
     const tx = await stakingContract.unstake();
     await tx.wait();
     await refreshStaking();
@@ -321,7 +310,7 @@ async function unstakeUSDC() {
 
 async function claimRewardsOnly() {
   try {
-    showStakingStatus("Claiming rewards... confirm in Rabby.", "info");
+    showStakingStatus("Claiming rewards... confirm in wallet.", "info");
     const tx = await stakingContract.claimRewards();
     await tx.wait();
     await refreshStaking();
@@ -337,7 +326,7 @@ function copyFaucetAddress() {
   if (!userAddress) { alert("Connect your wallet first!"); return; }
   navigator.clipboard.writeText(userAddress);
   const btn = event.target;
-  btn.innerText = "✅ Copied!";
+  btn.innerText = "Copied!";
   setTimeout(function() { btn.innerText = "📋 Copy"; }, 2000);
 }
 
@@ -355,30 +344,19 @@ async function getAISuggestions() {
       txCount: txHistory.length,
       lastTx: txHistory.length > 0 ? txHistory[0].type + " " + txHistory[0].amount + " " + txHistory[0].token : "No transactions yet"
     };
-    const prompt = "You are an AI assistant for a USDC payment and staking app on Arc Testnet by Circle.\nAnalyze this wallet data and give 2-3 short actionable suggestions.\nBe specific with numbers. Keep each suggestion to 1-2 sentences.\nRespond ONLY with a valid JSON array, no markdown, no backticks, no extra text.\nExample: [{\"icon\":\"💡\",\"text\":\"suggestion here\"},{\"icon\":\"📈\",\"text\":\"another suggestion\"}]\nWallet Data:\n- USDC Balance: " + walletData.usdcBalance + "\n- EURC Balance: " + walletData.eurcBalance + "\n- Staked Amount: " + walletData.stakedAmount + " USDC\n- Pending Rewards: " + walletData.pendingRewards + " USDC\n- Staking Since: " + walletData.stakingSince + "\n- Total Transactions: " + walletData.txCount + "\n- Last Transaction: " + walletData.lastTx;
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=" + GEMINI_API_KEY,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 500 }
-        })
-      }
-    );
+    const prompt = "You are an AI assistant for a USDC payment and staking app on Arc Testnet by Circle.\nAnalyze this wallet data and give 2-3 short actionable suggestions.\nRespond ONLY with a valid JSON array, no markdown, no backticks.\nExample: [{\"icon\":\"💡\",\"text\":\"suggestion here\"}]\nWallet: USDC=" + walletData.usdcBalance + " Staked=" + walletData.stakedAmount + " Rewards=" + walletData.pendingRewards + " Txs=" + walletData.txCount;
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=" + GEMINI_API_KEY, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 300 } })
+    });
     const data = await response.json();
     document.getElementById("aiLoading").style.display = "none";
-    if (!data.candidates || !data.candidates[0].content) {
-      document.getElementById("aiSuggestions").innerHTML = '<div style="color:var(--red);font-size:12px;">Error: ' + JSON.stringify(data) + '</div>';
-      return;
-    }
+    if (!data.candidates || !data.candidates[0].content) { document.getElementById("aiSuggestions").innerHTML = '<div style="color:var(--red);font-size:12px;">Error: ' + JSON.stringify(data) + '</div>'; return; }
     const text = data.candidates[0].content.parts[0].text.trim().replace(/```json|```/g, "").trim();
     const suggestions = JSON.parse(text);
     document.getElementById("aiSuggestions").innerHTML = suggestions.map(function(s) {
-      return '<div style="display:flex;align-items:flex-start;gap:12px;background:var(--surface2);border-radius:10px;padding:14px;border:1px solid var(--border);">'
-        + '<div style="font-size:24px;flex-shrink:0;">' + s.icon + '</div>'
-        + '<div style="font-size:13px;line-height:1.6;color:var(--text);">' + s.text + '</div></div>';
+      return '<div style="display:flex;align-items:flex-start;gap:12px;background:var(--surface2);border-radius:10px;padding:14px;border:1px solid var(--border);"><div style="font-size:24px;flex-shrink:0;">' + s.icon + '</div><div style="font-size:13px;line-height:1.6;color:var(--text);">' + s.text + '</div></div>';
     }).join("");
   } catch (err) {
     document.getElementById("aiLoading").style.display = "none";
@@ -395,4 +373,5 @@ function showStatus(message, type) {
 function showStakingStatus(message, type) {
   const el = document.getElementById("stakingStatus");
   el.innerHTML = message; el.className = type;
+  el.style.display = "block";
 }

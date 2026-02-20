@@ -4,21 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Arc Pay — USDC Payment Dashboard</title>
-  <link rel="icon" type="image/jpeg" href="favicon.jpg.jpg">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0a0a0f;
-      --surface: #12121a;
-      --surface2: #1a1a26;
-      --border: #2a2a3a;
-      --accent: #00d4ff;
-      --accent2: #7b6cff;
-      --green: #00e5a0;
-      --red: #ff4d6d;
-      --text: #e8e8f0;
-      --muted: #6b6b8a;
+      --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a26; --border: #2a2a3a;
+      --accent: #00d4ff; --accent2: #7b6cff; --green: #00e5a0; --red: #ff4d6d;
+      --text: #e8e8f0; --muted: #6b6b8a;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'DM Mono', monospace; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
@@ -31,21 +22,22 @@
     #connectBtn { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; padding: 10px 22px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
     #connectBtn:hover { opacity: 0.85; transform: translateY(-1px); }
     #connectBtn:disabled { opacity: 0.5; cursor: default; transform: none; }
+    #disconnectBtn { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; padding: 6px 14px; background: var(--surface2); color: var(--red); border: 1px solid var(--red); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: none; }
+    #disconnectBtn:hover { background: rgba(255,77,109,0.1); }
     #walletBar { display: none; align-items: center; gap: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; font-size: 12px; }
     .wallet-addr { color: var(--accent); font-weight: 500; }
     .balance-pill { display: flex; align-items: center; gap: 6px; background: var(--surface2); border-radius: 6px; padding: 4px 10px; font-size: 11px; }
     .balance-pill .dot { width: 6px; height: 6px; border-radius: 50%; }
-    .dot-usdc { background: #2775ca; }
-    .dot-eurc { background: #0052b4; }
+    .dot-usdc { background: #2775ca; } .dot-eurc { background: #0052b4; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .span-2 { grid-column: span 2; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; transition: border-color 0.2s; margin-bottom: 0; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; transition: border-color 0.2s; }
     .card:hover { border-color: rgba(0,212,255,0.2); }
     .card-title { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
     label { display: block; font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
-    input, select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; outline: none; transition: border-color 0.2s; margin-bottom: 14px; }
-    input:focus, select:focus { border-color: var(--accent); }
+    input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; outline: none; transition: border-color 0.2s; margin-bottom: 14px; }
+    input:focus { border-color: var(--accent); }
     input::placeholder { color: var(--muted); }
     .btn { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; padding: 11px 20px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; width: 100%; letter-spacing: 0.5px; }
     .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; }
@@ -63,12 +55,10 @@
     .tx-item:hover { border-color: var(--border); }
     .tx-left { display: flex; align-items: center; gap: 10px; }
     .tx-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-    .tx-icon.sent { background: rgba(255,77,109,0.15); }
-    .tx-icon.received { background: rgba(0,229,160,0.15); }
+    .tx-icon.sent { background: rgba(255,77,109,0.15); } .tx-icon.received { background: rgba(0,229,160,0.15); }
     .tx-addr { color: var(--muted); font-size: 11px; margin-top: 2px; }
     .tx-amount { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; }
-    .tx-amount.sent { color: var(--red); }
-    .tx-amount.received { color: var(--green); }
+    .tx-amount.sent { color: var(--red); } .tx-amount.received { color: var(--green); }
     .tx-time { color: var(--muted); font-size: 10px; }
     .empty-state { text-align: center; color: var(--muted); font-size: 12px; padding: 32px 0; }
     .contact-list { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
@@ -97,6 +87,10 @@
     .connect-subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; line-height: 1.6; }
     .connect-big-btn { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; padding: 16px 48px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
     .connect-big-btn:hover { opacity: 0.85; transform: translateY(-2px); }
+    .wallet-options { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+    .wallet-opt { display: flex; flex-direction: column; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; cursor: pointer; transition: all 0.2s; font-size: 11px; color: var(--muted); min-width: 80px; }
+    .wallet-opt:hover { border-color: var(--accent); color: var(--text); }
+    .wallet-opt .wi { font-size: 28px; }
     .features-list { display: flex; justify-content: center; gap: 24px; margin-top: 40px; flex-wrap: wrap; }
     .feature-item { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
     .feature-item span { color: var(--accent); }
@@ -113,7 +107,6 @@
 <body>
 <div class="app">
 
-  <!-- Header -->
   <header>
     <div style="display:flex;align-items:center;gap:12px;">
       <div class="logo">Arc<span>Pay</span></div>
@@ -125,6 +118,7 @@
         <div class="balance-pill"><div class="dot dot-usdc"></div><span id="usdcBal">0.00 USDC</span></div>
         <div class="balance-pill"><div class="dot dot-eurc"></div><span id="eurcBal">0.00 EURC</span></div>
       </div>
+      <button id="disconnectBtn" onclick="disconnectWallet()">Disconnect</button>
       <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
     </div>
   </header>
@@ -134,6 +128,15 @@
     <div class="connect-big-title">Arc Pay</div>
     <div class="connect-subtitle">A full-featured USDC & EURC payment dashboard<br>built on Arc Testnet by Circle.</div>
     <button class="connect-big-btn" onclick="connectWallet()">⚡ Connect Wallet</button>
+    <div style="margin-top:20px;font-size:12px;color:var(--muted);">Supports all wallets</div>
+    <div class="wallet-options">
+      <div class="wallet-opt" onclick="connectWallet()"><div class="wi">🦊</div>MetaMask</div>
+      <div class="wallet-opt" onclick="connectWallet()"><div class="wi">🐰</div>Rabby</div>
+      <div class="wallet-opt" onclick="connectWallet()"><div class="wi">🔵</div>Coinbase</div>
+      <div class="wallet-opt" onclick="connectWallet()"><div class="wi">🌈</div>Rainbow</div>
+      <div class="wallet-opt" onclick="connectWallet()"><div class="wi">🛡️</div>Trust</div>
+      <div class="wallet-opt" onclick="connectWallet()"><div class="wi">📱</div>+ More</div>
+    </div>
     <div class="features-list">
       <div class="feature-item"><span>💸</span> Send USDC & EURC</div>
       <div class="feature-item"><span>📋</span> Address Book</div>
@@ -163,7 +166,6 @@
         <button class="btn btn-primary" onclick="sendToken()">Send →</button>
         <div id="status"></div>
       </div>
-
       <div class="card">
         <div class="card-title"><span class="icon">📋</span> Address Book</div>
         <button class="btn btn-secondary" onclick="toggleAddContact()" style="margin-bottom:12px;">+ Add Contact</button>
@@ -205,10 +207,7 @@
         </div>
       </div>
       <div style="display:flex;gap:12px;align-items:flex-end;">
-        <div style="flex:1;">
-          <label>Amount to Stake</label>
-          <input id="stakeAmount" type="number" placeholder="e.g. 100" style="margin-bottom:0;" />
-        </div>
+        <div style="flex:1;"><label>Amount to Stake</label><input id="stakeAmount" type="number" placeholder="e.g. 100" style="margin-bottom:0;" /></div>
         <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="stakeUSDC()">Stake →</button>
         <button class="btn btn-secondary" style="width:auto;padding:10px 20px;" onclick="claimRewardsOnly()">Claim Rewards</button>
         <button class="btn" style="width:auto;padding:10px 20px;background:var(--red);color:#fff;" onclick="unstakeUSDC()">Unstake All</button>
@@ -262,16 +261,13 @@
         </div>
       </div>
       <div style="display:flex;gap:12px;align-items:flex-end;">
-        <div style="flex:1;">
-          <label>Your Wallet Address</label>
-          <input id="faucetAddr" type="text" placeholder="Connect wallet to see your address" style="margin-bottom:0;" readonly />
-        </div>
+        <div style="flex:1;"><label>Your Wallet Address</label><input id="faucetAddr" type="text" placeholder="Connect wallet to see your address" style="margin-bottom:0;" readonly /></div>
         <button class="btn btn-secondary" style="width:auto;padding:10px 20px;" onclick="copyFaucetAddress()">📋 Copy</button>
         <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="refreshBalances()">🔄 Refresh Balance</button>
       </div>
     </div>
 
-    <!-- Row 5: AI Suggestions (hidden until quota resets) -->
+    <!-- AI Suggestions (hidden until quota resets) -->
     <div class="card section-gap" style="display:none;">
       <div class="card-title"><span class="icon">🤖</span> AI Smart Suggestions</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
@@ -284,12 +280,58 @@
 
   </div><!-- /dashboard -->
 
-  <!-- Footer -->
   <div class="footer">
     Built by <a href="https://www.linkedin.com/in/amanverma1005ed/" target="_blank">Aman Verma</a> · Powered by Arc Testnet by Circle
   </div>
 
 </div>
+
+<!-- WalletConnect Web3Modal -->
+<script type="module">
+  import { createWeb3Modal, defaultConfig } from 'https://esm.sh/@web3modal/ethers@4.2.3';
+
+  const ARC_CHAIN = {
+    chainId: 5042002,
+    name: 'Arc Testnet',
+    currency: 'USDC',
+    explorerUrl: 'https://testnet.arcscan.app',
+    rpcUrl: 'https://rpc.testnet.arc.network'
+  };
+
+  const metadata = {
+    name: 'Arc Pay',
+    description: 'USDC Payment Dashboard on Arc Testnet',
+    url: window.location.origin,
+    icons: ['https://avatars.githubusercontent.com/u/37784886']
+  };
+
+  const modal = createWeb3Modal({
+    ethersConfig: defaultConfig({ metadata }),
+    chains: [ARC_CHAIN],
+    projectId: 'f3c74f524436e68f9e7de020a6833a45',
+    themeMode: 'dark',
+    themeVariables: {
+      '--w3m-accent': '#00d4ff',
+      '--w3m-border-radius-master': '8px'
+    }
+  });
+
+  window._w3modal = modal;
+
+  modal.subscribeProvider(function(state) {
+    if (state.isConnected && state.address) {
+      window._w3mAddress = state.address;
+      window._w3mProvider = state.provider;
+      if (typeof window.onWalletConnected === 'function') {
+        window.onWalletConnected(state.provider, state.address);
+      }
+    } else {
+      if (typeof window.onWalletDisconnected === 'function') {
+        window.onWalletDisconnected();
+      }
+    }
+  });
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
 <script src="app.js"></script>
