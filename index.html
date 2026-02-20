@@ -1111,8 +1111,31 @@
 </head>
 <body>
 <div class="app">
+  <!-- Header -->
+  <header>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="logo">Arc<span>Pay</span></div>
+      <div class="header-badge">Testnet</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div id="walletBar" style="display:none;align-items:center;gap:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 16px;font-size:12px;">
+        <span style="color:var(--accent);font-weight:500;" id="walletAddr"></span>
+        <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border-radius:6px;padding:4px 10px;font-size:11px;"><div style="width:6px;height:6px;border-radius:50%;background:#2775ca;"></div><span id="usdcBal">0.00 USDC</span></div>
+        <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border-radius:6px;padding:4px 10px;font-size:11px;"><div style="width:6px;height:6px;border-radius:50%;background:#0052b4;"></div><span id="eurcBal">0.00 EURC</span></div>
+      </div>
+      <button id="connectBtn" onclick="connectWallet()" style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;padding:10px 22px;background:linear-gradient(135deg,#00d4ff,#7b6cff);color:#000;border:none;border-radius:8px;cursor:pointer;">Connect Wallet</button>
+    </div>
+  </header>
+
+  <!-- Connect Overlay -->
+  <div id="connectOverlay" style="text-align:center;padding:60px 20px;">
+    <div style="font-family:Syne,sans-serif;font-size:48px;font-weight:800;letter-spacing:-2px;margin-bottom:12px;background:linear-gradient(135deg,#00d4ff,#7b6cff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Arc Pay</div>
+    <div style="color:rgba(255,255,255,0.4);font-size:14px;margin-bottom:32px;line-height:1.6;">A full-featured USDC & EURC payment dashboard<br>built on Arc Testnet by Circle.</div>
+    <button onclick="connectWallet()" style="font-family:Syne,sans-serif;font-size:16px;font-weight:700;padding:16px 48px;background:linear-gradient(135deg,#00d4ff,#7b6cff);color:#000;border:none;border-radius:12px;cursor:pointer;">⚡ Connect Wallet</button>
+  </div>
+
   <!-- Dashboard -->
-  <div id="dashboard">
+  <div id="dashboard" style="display:none;">
 
     <!-- Row 1: Send + Address Book -->
     <div class="grid section-gap">
