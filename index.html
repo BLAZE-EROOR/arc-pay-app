@@ -1238,55 +1238,9 @@
   </div>
 </div>
 
-<!-- WalletConnect Web3Modal -->
-<script type="module">
-  import { createWeb3Modal, defaultConfig } from 'https://esm.sh/@web3modal/ethers@4.2.3';
 
-  const ARC_CHAIN = {
-    chainId: 5042002,
-    name: 'Arc Testnet',
-    currency: 'USDC',
-    explorerUrl: 'https://testnet.arcscan.app',
-    rpcUrl: 'https://rpc.testnet.arc.network'
-  };
-
-  const metadata = {
-    name: 'Arc Pay',
-    description: 'USDC Payment Dashboard on Arc Testnet',
-    url: window.location.origin,
-    icons: ['https://avatars.githubusercontent.com/u/37784886']
-  };
-
-  const modal = createWeb3Modal({
-    ethersConfig: defaultConfig({ metadata }),
-    chains: [ARC_CHAIN],
-    projectId: 'f3c74f524436e68f9e7de020a6833a45',
-    themeMode: 'dark',
-    themeVariables: {
-      '--w3m-accent': '#00d4ff',
-      '--w3m-border-radius-master': '8px'
-    }
-  });
-
-  window._w3modal = modal;
-
-  modal.subscribeProvider(function(state) {
-    if (state.isConnected && state.address) {
-      window._w3mAddress = state.address;
-      window._w3mProvider = state.provider;
-      if (typeof window.onWalletConnected === 'function') {
-        window.onWalletConnected(state.provider, state.address);
-      }
-    } else {
-      if (typeof window.onWalletDisconnected === 'function') {
-        window.onWalletDisconnected();
-      }
-    }
-  });
-</script>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
 <script src="app.js"></script>
 </body>
-</html>
 </html>

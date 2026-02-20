@@ -399,7 +399,6 @@ function showStakingStatus(message, type) {
   el.innerHTML = message; el.className = type;
   el.style.display = "block";
 }
-}
 
 // ─── Animation & UI Enhancements ──────────────────────────────────────────────
 
