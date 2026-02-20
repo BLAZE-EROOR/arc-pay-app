@@ -353,9 +353,11 @@ async function getAISuggestions() {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + OPENROUTER_API_KEY
-      },
+  "Content-Type": "application/json",
+  "Authorization": "Bearer " + OPENROUTER_API_KEY,
+  "HTTP-Referer": "https://arc-pay-app.vercel.app",
+  "X-Title": "Arc Pay"
+},
       body: JSON.stringify({
         model: "google/gemma-3-4b-it:free",
         messages: [{ role: "user", content: prompt }],
