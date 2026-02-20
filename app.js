@@ -5,7 +5,7 @@ const ARC_CHAIN_ID_HEX = "0x4CE052";
 const USDC_ADDRESS = "0x3600000000000000000000000000000000000000";
 const EURC_ADDRESS = "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a";
 const STAKING_ADDRESS = "0xBe0A823eD7Bd9eD9cc5Ebc470b0DBeB1653E8632";
-const GEMINI_API_KEY = "AIzaSyB1q5g9LvcuC3T3BHadDiQQ-FR4CjEkUds";
+const OPENROUTER_API_KEY = "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";
 
 const ERC20_ABI = [
   "function balanceOf(address owner) view returns (uint256)",
@@ -331,38 +331,26 @@ function copyFaucetAddress() {
 }
 
 // ─── AI Suggestions ───────────────────────────────────────────────────────────
-async function getAISuggestions() {
-  try {
-    document.getElementById("aiLoading").style.display = "block";
-    document.getElementById("aiSuggestions").innerHTML = "";
-    const walletData = {
-      usdcBalance: document.getElementById("usdcBal").innerText,
-      eurcBalance: document.getElementById("eurcBal").innerText,
-      stakedAmount: document.getElementById("stakedAmount").innerText,
-      pendingRewards: document.getElementById("pendingReward").innerText,
-      stakingSince: document.getElementById("stakingSince").innerText,
-      txCount: txHistory.length,
-      lastTx: txHistory.length > 0 ? txHistory[0].type + " " + txHistory[0].amount + " " + txHistory[0].token : "No transactions yet"
-    };
-    const prompt = "You are an AI assistant for a USDC payment and staking app on Arc Testnet by Circle.\nAnalyze this wallet data and give 2-3 short actionable suggestions.\nRespond ONLY with a valid JSON array, no markdown, no backticks.\nExample: [{\"icon\":\"💡\",\"text\":\"suggestion here\"}]\nWallet: USDC=" + walletData.usdcBalance + " Staked=" + walletData.stakedAmount + " Rewards=" + walletData.pendingRewards + " Txs=" + walletData.txCount;
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=" + GEMINI_API_KEY, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 300 } })
-    });
-    const data = await response.json();
-    document.getElementById("aiLoading").style.display = "none";
-    if (!data.candidates || !data.candidates[0].content) { document.getElementById("aiSuggestions").innerHTML = '<div style="color:var(--red);font-size:12px;">Error: ' + JSON.stringify(data) + '</div>'; return; }
-    const text = data.candidates[0].content.parts[0].text.trim().replace(/```json|```/g, "").trim();
-    const suggestions = JSON.parse(text);
-    document.getElementById("aiSuggestions").innerHTML = suggestions.map(function(s) {
-      return '<div style="display:flex;align-items:flex-start;gap:12px;background:var(--surface2);border-radius:10px;padding:14px;border:1px solid var(--border);"><div style="font-size:24px;flex-shrink:0;">' + s.icon + '</div><div style="font-size:13px;line-height:1.6;color:var(--text);">' + s.text + '</div></div>';
-    }).join("");
-  } catch (err) {
-    document.getElementById("aiLoading").style.display = "none";
-    document.getElementById("aiSuggestions").innerHTML = '<div style="color:var(--red);font-size:12px;">Error: ' + err.message + '</div>';
-  }
+const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer " + OPENROUTER_API_KEY
+  },
+  body: JSON.stringify({
+    model: "google/gemma-3-4b-it:free",
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: 300
+  })
+});
+const data = await response.json();
+document.getElementById("aiLoading").style.display = "none";
+if (!data.choices || !data.choices[0]) {
+  document.getElementById("aiSuggestions").innerHTML = '<div style="color:var(--red);font-size:12px;">Error: ' + JSON.stringify(data) + '</div>';
+  return;
 }
+const text = data.choices[0].message.content.trim().replace(/```json|```/g, "").trim();
+const suggestions = JSON.parse(text);
 
 // ─── Status ───────────────────────────────────────────────────────────────────
 function showStatus(message, type) {
