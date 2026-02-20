@@ -28,12 +28,38 @@ let selectedToken = "USDC";
 let contacts = JSON.parse(localStorage.getItem("arcpay_contacts") || "[]");
 let txHistory = JSON.parse(localStorage.getItem("arcpay_txhistory") || "[]");
 
-// ─── Wallet Connected Callback (from Web3Modal) ───────────────────────────────
-window.onWalletConnected = async function(rawProvider, address) {
+// ─── Connect Wallet ───────────────────────────────────────────────────────────
+async function connectWallet() {
   try {
-    provider = new ethers.BrowserProvider(rawProvider);
+    if (!window.ethereum) {
+      alert("No wallet found! Please install Rabby or MetaMask.");
+      return;
+    }
+
+    document.getElementById("connectBtn").innerText = "Connecting...";
+    document.getElementById("connectBtn").disabled = true;
+
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+
+    // Try to switch to Arc Testnet
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: ARC_CHAIN_ID_HEX }]
+      });
+    } catch (e) { console.log("Chain switch:", e.message); }
+
+    const network = await provider.getNetwork();
+    if (Number(network.chainId) !== ARC_CHAIN_ID_DECIMAL) {
+      alert("Please switch to Arc Testnet in your wallet and try again.");
+      document.getElementById("connectBtn").innerText = "Connect Wallet";
+      document.getElementById("connectBtn").disabled = false;
+      return;
+    }
+
     signer = await provider.getSigner();
-    userAddress = address;
+    userAddress = await signer.getAddress();
 
     usdcContract = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
     eurcContract = new ethers.Contract(EURC_ADDRESS, ERC20_ABI, signer);
@@ -44,8 +70,8 @@ window.onWalletConnected = async function(rawProvider, address) {
     document.getElementById("connectOverlay").style.display = "none";
     document.getElementById("dashboard").style.display = "block";
     document.getElementById("walletBar").style.display = "flex";
-    document.getElementById("connectBtn").style.display = "none";
-    document.getElementById("disconnectBtn").style.display = "block";
+    document.getElementById("connectBtn").innerText = "Connected";
+    document.getElementById("connectBtn").disabled = false;
     document.getElementById("walletAddr").innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
 
     var qrEl = document.getElementById("qrAddress");
@@ -60,43 +86,22 @@ window.onWalletConnected = async function(rawProvider, address) {
     handleIncomingPaymentLink();
 
     localStorage.setItem("arcpay_connected", "true");
+
   } catch (err) {
-    console.error("Wallet connect error:", err);
+    console.error(err);
+    document.getElementById("connectBtn").innerText = "Connect Wallet";
+    document.getElementById("connectBtn").disabled = false;
     alert("Error: " + err.message);
   }
-};
-
-window.onWalletDisconnected = function() {
-  provider = null; signer = null; userAddress = null;
-  usdcContract = null; eurcContract = null; stakingContract = null;
-  document.getElementById("connectOverlay").style.display = "block";
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("walletBar").style.display = "none";
-  document.getElementById("connectBtn").style.display = "block";
-  document.getElementById("disconnectBtn").style.display = "none";
-  document.getElementById("connectBtn").innerText = "Connect Wallet";
-  localStorage.removeItem("arcpay_connected");
-};
-
-// ─── Connect Wallet (opens Web3Modal) ────────────────────────────────────────
-function connectWallet() {
-  if (window._w3modal) {
-    window._w3modal.open();
-  } else {
-    // Fallback to injected wallet
-    setTimeout(function() {
-      if (window._w3modal) window._w3modal.open();
-    }, 1000);
-  }
-}
-
-function disconnectWallet() {
-  if (window._w3modal) window._w3modal.disconnect();
 }
 
 // ─── Auto Connect ─────────────────────────────────────────────────────────────
 window.onload = function() {
-  // Web3Modal handles auto-reconnect automatically
+  if (localStorage.getItem("arcpay_connected") === "true" && window.ethereum) {
+    window.ethereum.request({ method: "eth_accounts" }).then(function(accounts) {
+      if (accounts.length > 0) connectWallet();
+    }).catch(function(e) { console.log("Auto-connect failed:", e); });
+  }
 };
 
 // ─── Balances ─────────────────────────────────────────────────────────────────
@@ -331,26 +336,55 @@ function copyFaucetAddress() {
 }
 
 // ─── AI Suggestions ───────────────────────────────────────────────────────────
-const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer " + OPENROUTER_API_KEY
-  },
-  body: JSON.stringify({
-    model: "google/gemma-3-4b-it:free",
-    messages: [{ role: "user", content: prompt }],
-    max_tokens: 300
-  })
-});
-const data = await response.json();
-document.getElementById("aiLoading").style.display = "none";
-if (!data.choices || !data.choices[0]) {
-  document.getElementById("aiSuggestions").innerHTML = '<div style="color:var(--red);font-size:12px;">Error: ' + JSON.stringify(data) + '</div>';
-  return;
+async function getAISuggestions() {
+  try {
+    document.getElementById("aiLoading").style.display = "block";
+    document.getElementById("aiSuggestions").innerHTML = "";
+
+    const walletData = {
+      usdcBalance: document.getElementById("usdcBal").innerText,
+      stakedAmount: document.getElementById("stakedAmount").innerText,
+      pendingRewards: document.getElementById("pendingReward").innerText,
+      txCount: txHistory.length
+    };
+
+    const prompt = "You are an AI assistant for a USDC payment and staking app on Arc Testnet by Circle.\nAnalyze this wallet data and give 2-3 short actionable suggestions.\nRespond ONLY with a valid JSON array, no markdown, no backticks.\nExample: [{\"icon\":\"💡\",\"text\":\"suggestion here\"}]\nWallet: USDC=" + walletData.usdcBalance + " Staked=" + walletData.stakedAmount + " Rewards=" + walletData.pendingRewards + " Txs=" + walletData.txCount;
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + OPENROUTER_API_KEY
+      },
+      body: JSON.stringify({
+        model: "google/gemma-3-4b-it:free",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 300
+      })
+    });
+
+    const data = await response.json();
+    document.getElementById("aiLoading").style.display = "none";
+
+    if (!data.choices || !data.choices[0]) {
+      document.getElementById("aiSuggestions").innerHTML = '<div style="color:var(--red);font-size:12px;">Error: ' + JSON.stringify(data) + '</div>';
+      return;
+    }
+
+    const text = data.choices[0].message.content.trim().replace(/```json|```/g, "").trim();
+    const suggestions = JSON.parse(text);
+
+    document.getElementById("aiSuggestions").innerHTML = suggestions.map(function(s) {
+      return '<div style="display:flex;align-items:flex-start;gap:12px;background:var(--surface2);border-radius:10px;padding:14px;border:1px solid var(--border);">'
+        + '<div style="font-size:24px;flex-shrink:0;">' + s.icon + '</div>'
+        + '<div style="font-size:13px;line-height:1.6;color:var(--text);">' + s.text + '</div></div>';
+    }).join("");
+
+  } catch (err) {
+    document.getElementById("aiLoading").style.display = "none";
+    document.getElementById("aiSuggestions").innerHTML = '<div style="color:var(--red);font-size:12px;">Error: ' + err.message + '</div>';
+  }
 }
-const text = data.choices[0].message.content.trim().replace(/```json|```/g, "").trim();
-const suggestions = JSON.parse(text);
 
 // ─── Status ───────────────────────────────────────────────────────────────────
 function showStatus(message, type) {
