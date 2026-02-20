@@ -5,36 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Arc Pay — USDC Payment Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    /* ─── CSS Variables ─────────────────────────────────────────── */
     :root {
       --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a26; --border: #2a2a3a;
       --accent: #00d4ff; --accent2: #7b6cff; --green: #00e5a0; --red: #ff4d6d;
       --text: #e8e8f0; --muted: #6b6b8a;
-      --primary: #10b981;
-      --secondary: #14b8a6;
-      --tertiary: #059669;
-      --bg-dark: #0a0a14;
-      --surface: rgba(255,255,255,0.03);
-      --surface2: rgba(255,255,255,0.02);
-      --border: rgba(255,255,255,0.08);
-      --text: rgba(255,255,255,0.95);
-      --text-secondary: rgba(255,255,255,0.6);
-      --text-muted: rgba(255,255,255,0.4);
-      --success: #10b981;
-      --error: #ef4444;
-      --warning: #f59e0b;
-      --info: #14b8a6;
     }
-
-    /* ─── Reset & Base ──────────────────────────────────────────── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'DM Mono', monospace; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
     body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
-    .app { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
+    .app { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 32px 20px 100px 20px; }
     header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
     .logo { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
     .logo span { color: var(--accent); }
@@ -42,196 +22,13 @@
     #connectBtn { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; padding: 10px 22px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
     #connectBtn:hover { opacity: 0.85; transform: translateY(-1px); }
     #connectBtn:disabled { opacity: 0.5; cursor: default; transform: none; }
-    #disconnectBtn { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; padding: 6px 14px; background: var(--surface2); color: var(--red); border: 1px solid var(--red); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: none; }
-    #disconnectBtn:hover { background: rgba(255,77,109,0.1); }
     #walletBar { display: none; align-items: center; gap: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; font-size: 12px; }
     .wallet-addr { color: var(--accent); font-weight: 500; }
     .balance-pill { display: flex; align-items: center; gap: 6px; background: var(--surface2); border-radius: 6px; padding: 4px 10px; font-size: 11px; }
-
-    body {
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #0a0a14 0%, #0f1419 50%, #0a1410 100%);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* ─── Keyframe Animations ────────────────────────────────────── */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes slideInLeft {
-      from { opacity: 0; transform: translateX(-30px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
-
-    @keyframes morph {
-      0%, 100% { border-radius: 20px; }
-      25% { border-radius: 24px 16px 28px 12px; }
-      50% { border-radius: 16px 28px 16px 28px; }
-      75% { border-radius: 28px 12px 24px 16px; }
-    }
-
-    @keyframes shimmer {
-      0% { background-position: -1000px 0; }
-      100% { background-position: 1000px 0; }
-    }
-
-    @keyframes glow {
-      0%, 100% { box-shadow: 0 0 20px rgba(16,185,129,0.3); }
-      50% { box-shadow: 0 0 40px rgba(20,184,166,0.5); }
-    }
-
-    @keyframes ripple {
-      0% { transform: scale(0); opacity: 1; }
-      100% { transform: scale(4); opacity: 0; }
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.8; transform: scale(0.98); }
-    }
-
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* ─── Layout ────────────────────────────────────────────────── */
-    .app {
-      position: relative;
-      z-index: 1;
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 32px 20px;
-      padding-bottom: 100px;
-    }
-
-    /* ─── Header ─────────────────────────────────────────────────── */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 40px;
-      padding: 20px 32px;
-      background: rgba(255,255,255,0.02);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-      border-radius: 0 0 20px 20px;
-      animation: slideInLeft 0.5s ease-out;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .logo {
-      font-family: 'Poppins', sans-serif;
-      font-size: 26px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      background: linear-gradient(135deg, #10b981, #14b8a6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      transition: transform 0.2s;
-    }
-
-    .logo:hover { transform: scale(1.05); }
-
-    .header-badge {
-      font-size: 11px;
-      background: rgba(16,185,129,0.15);
-      border: 1px solid var(--primary);
-      color: var(--primary);
-      padding: 4px 10px;
-      border-radius: 20px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      font-weight: 500;
-    }
-
-    #walletBar {
-      display: none;
-      align-items: center;
-      gap: 16px;
-      font-size: 12px;
-    }
-
-    .wallet-addr {
-      color: var(--secondary);
-      font-weight: 500;
-      font-family: 'Fira Code', monospace;
-      font-size: 13px;
-    }
-
-    .balance-pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 8px 16px;
-      font-size: 11px;
-      animation: float 3s ease-in-out infinite;
-    }
-
     .balance-pill .dot { width: 6px; height: 6px; border-radius: 50%; }
     .dot-usdc { background: #2775ca; } .dot-eurc { background: #0052b4; }
-    .dot-usdc { background: #2775ca; }
-    .dot-eurc { background: #0052b4; }
-
-    #connectBtn {
-      font-family: 'Poppins', sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      padding: 10px 22px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      background-size: 200% 200%;
-      animation: gradientShift 3s ease infinite;
-      color: #000;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-      position: relative;
-      overflow: hidden;
-    }
-
-    #connectBtn:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 20px 40px rgba(16,185,129,0.5);
-    }
-
-    #connectBtn:disabled { opacity: 0.5; cursor: default; transform: none; }
-
-    #disconnectBtn {
-      font-family: 'Poppins', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 6px 14px;
-      background: rgba(255,255,255,0.04);
-      color: var(--error);
-      border: 1px solid var(--error);
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: none;
-    }
-
-    #disconnectBtn:hover { background: rgba(239,68,68,0.1); }
-
-    /* ─── Grid & Layout ─────────────────────────────────────────── */
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
     .span-2 { grid-column: span 2; }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; transition: border-color 0.2s; }
     .card:hover { border-color: rgba(0,212,255,0.2); }
@@ -246,178 +43,7 @@
     .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { border-color: var(--accent); }
     .btn-green { background: var(--green); color: #000; }
-    .section-gap { margin-bottom: 20px; }
-
-    /* ─── Cards ──────────────────────────────────────────────────── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 28px;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      animation: fadeInUp 0.6s ease-out;
-      animation-fill-mode: both;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(16,185,129,0.1), transparent);
-      transition: left 0.7s;
-      pointer-events: none;
-    }
-
-    .card:hover::before { left: 100%; }
-
-    .card:hover {
-      border-color: rgba(16,185,129,0.3);
-      transform: translateY(-6px) scale(1.01);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-      animation: morph 8s ease-in-out infinite;
-    }
-
-    .card-title {
-      font-family: 'Poppins', sans-serif;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .card-title .icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #10b981, #14b8a6);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      transition: all 0.5s;
-    }
-
-    .card:hover .card-title .icon {
-      transform: rotate(360deg) scale(1.2);
-    }
-
-    /* ─── Inputs ─────────────────────────────────────────────────── */
-    label {
-      display: block;
-      font-size: 10px;
-      color: var(--text-muted);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-      font-weight: 500;
-    }
-
-    input {
-      width: 100%;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 14px;
-      padding: 15px 18px;
-      color: var(--text);
-      font-family: 'Fira Code', monospace;
-      font-size: 14px;
-      outline: none;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      margin-bottom: 14px;
-    }
-
-    input:focus {
-      border-color: var(--primary);
-      background: rgba(255,255,255,0.08);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(16,185,129,0.2);
-    }
-
-    input::placeholder { color: var(--text-muted); }
-
-    /* ─── Buttons ────────────────────────────────────────────────── */
-    .btn {
-      font-family: 'Poppins', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 16px;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-      width: 100%;
-      letter-spacing: 0.5px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      background-size: 200% 200%;
-      animation: gradientShift 3s ease infinite;
-      color: #000;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 20px 40px rgba(16,185,129,0.5);
-    }
-
-    .btn-primary .ripple {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.6);
-      width: 100px;
-      height: 100px;
-      animation: ripple 0.6s ease-out;
-      pointer-events: none;
-    }
-
-    .btn-secondary {
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .btn-secondary:hover {
-      border-color: var(--secondary);
-      background: rgba(255,255,255,0.08);
-    }
-
-    .btn-green {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: #000;
-    }
-
     .btn + .btn { margin-top: 8px; }
-
-    .btn-stake {
-      background: linear-gradient(135deg, #10b981, #14b8a6);
-      color: #000;
-    }
-
-    .btn-claim {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(16,185,129,0.3);
-      color: #10b981;
-    }
-
-    .btn-unstake {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: #fff;
-    }
-
-    /* ─── Token Tabs ─────────────────────────────────────────────── */
     .token-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
     .token-tab { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center; }
     .token-tab.active-usdc { background: rgba(39,117,202,0.15); border-color: #2775ca; color: #5aa3e8; }
@@ -438,173 +64,6 @@
     .contact-item:hover { border-color: var(--accent); }
     .contact-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 12px; }
     .contact-addr { color: var(--muted); font-size: 10px; margin-top: 2px; }
-
-    .token-tab {
-      flex: 1;
-      padding: 10px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.04);
-      color: var(--text-muted);
-      font-family: 'Poppins', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-align: center;
-    }
-
-    .token-tab.active-usdc {
-      background: rgba(39,117,202,0.15);
-      border-color: #2775ca;
-      color: #5aa3e8;
-      transform: scale(0.95);
-    }
-
-    .token-tab.active-eurc {
-      background: rgba(0,82,180,0.15);
-      border-color: #0052b4;
-      color: #5b8fdd;
-      transform: scale(0.95);
-    }
-
-    /* ─── Transaction List ───────────────────────────────────────── */
-    .tx-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-height: 350px;
-      overflow-y: auto;
-    }
-
-    .tx-list::-webkit-scrollbar { width: 4px; }
-    .tx-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
-    .tx-list::-webkit-scrollbar-thumb {
-      background: rgba(16,185,129,0.3);
-      border-radius: 2px;
-    }
-    .tx-list::-webkit-scrollbar-thumb:hover { background: rgba(16,185,129,0.5); }
-
-    .tx-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 14px;
-      padding: 16px 18px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .tx-item::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(16,185,129,0.1), transparent);
-      transition: left 0.5s;
-    }
-
-    .tx-item:hover::before { left: 100%; }
-
-    .tx-item:hover {
-      background: rgba(255,255,255,0.05);
-      border-color: rgba(16,185,129,0.3);
-      transform: translateX(6px);
-    }
-
-    .tx-left { display: flex; align-items: center; gap: 12px; }
-
-    .tx-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #10b981, #14b8a6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
-      transition: all 0.4s;
-    }
-
-    .tx-item:hover .tx-icon {
-      transform: rotate(360deg) scale(1.15);
-    }
-
-    .tx-icon.sent { background: linear-gradient(135deg, #ef4444, #dc2626); }
-    .tx-icon.received { background: linear-gradient(135deg, #10b981, #14b8a6); }
-
-    .tx-addr {
-      color: var(--text-muted);
-      font-size: 11px;
-      margin-top: 2px;
-      font-family: 'Fira Code', monospace;
-    }
-
-    .tx-amount {
-      font-family: 'Fira Code', sans-serif;
-      font-weight: 600;
-      font-size: 15px;
-      transition: transform 0.3s;
-    }
-
-    .tx-item:hover .tx-amount { transform: scale(1.1); }
-
-    .tx-amount.sent { color: var(--error); }
-    .tx-amount.received { color: var(--success); }
-
-    .tx-time {
-      color: var(--text-muted);
-      font-size: 10px;
-    }
-
-    /* ─── Contact List ───────────────────────────────────────────── */
-    .contact-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-
-    .contact-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .contact-item:hover {
-      border-color: rgba(16,185,129,0.3);
-      background: rgba(255,255,255,0.04);
-    }
-
-    .contact-name {
-      font-family: 'Poppins', sans-serif;
-      font-weight: 600;
-      font-size: 13px;
-    }
-
-    .contact-addr {
-      color: var(--text-muted);
-      font-size: 11px;
-      margin-top: 2px;
-      font-family: 'Fira Code', monospace;
-    }
-
     .contact-actions { display: flex; gap: 6px; }
     .icon-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px; opacity: 0.6; transition: opacity 0.2s; }
     .icon-btn:hover { opacity: 1; }
@@ -617,105 +76,6 @@
     .info { background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2); color: var(--accent); display: block !important; }
     .divider { height: 1px; background: var(--border); margin: 16px 0; }
     .row { display: flex; gap: 8px; }
-
-    .icon-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-      padding: 4px;
-      opacity: 0.6;
-      transition: all 0.2s;
-    }
-
-    .icon-btn:hover {
-      opacity: 1;
-      transform: scale(1.15);
-    }
-
-    /* ─── QR & Payment Links ─────────────────────────────────────── */
-    #qrCanvas {
-      display: block;
-      margin: 0 auto;
-      border-radius: 12px;
-      image-rendering: pixelated;
-    }
-
-    .qr-address {
-      text-align: center;
-      font-size: 11px;
-      color: var(--text-muted);
-      margin: 12px 0;
-      word-break: break-all;
-      font-family: 'Fira Code', monospace;
-      cursor: pointer;
-      transition: color 0.3s;
-    }
-
-    .qr-address:hover { color: var(--secondary); }
-
-    .payment-link-box {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 11px;
-      color: var(--secondary);
-      word-break: break-all;
-      margin: 12px 0;
-      min-height: 48px;
-      font-family: 'Fira Code', monospace;
-    }
-
-    /* ─── Status Messages ────────────────────────────────────────── */
-    #status, #stakingStatus {
-      margin-top: 12px;
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-size: 12px;
-      display: none;
-      animation: fadeInUp 0.3s ease-out;
-    }
-
-    .success {
-      background: rgba(16,185,129,0.1);
-      border: 1px solid rgba(16,185,129,0.3);
-      color: var(--success);
-      display: block !important;
-    }
-
-    .error {
-      background: rgba(239,68,68,0.1);
-      border: 1px solid rgba(239,68,68,0.3);
-      color: var(--error);
-      display: block !important;
-    }
-
-    .info {
-      background: rgba(20,184,166,0.08);
-      border: 1px solid rgba(20,184,166,0.2);
-      color: var(--info);
-      display: block !important;
-    }
-
-    /* ─── Empty States ───────────────────────────────────────────── */
-    .empty-state {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 12px;
-      padding: 40px;
-      line-height: 1.6;
-    }
-
-    /* ─── Divider ────────────────────────────────────────────────── */
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 20px 0;
-    }
-
-    /* ─── Row Layout ─────────────────────────────────────────────── */
-    .row { display: flex; gap: 12px; align-items: flex-end; }
     .row input { margin-bottom: 0; }
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: var(--surface); }
@@ -725,392 +85,48 @@
     .connect-subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; line-height: 1.6; }
     .connect-big-btn { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; padding: 16px 48px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
     .connect-big-btn:hover { opacity: 0.85; transform: translateY(-2px); }
-    .wallet-options { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
-    .wallet-opt { display: flex; flex-direction: column; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; cursor: pointer; transition: all 0.2s; font-size: 11px; color: var(--muted); min-width: 80px; }
-    .wallet-opt:hover { border-color: var(--accent); color: var(--text); }
-    .wallet-opt .wi { font-size: 28px; }
     .features-list { display: flex; justify-content: center; gap: 24px; margin-top: 40px; flex-wrap: wrap; }
     .feature-item { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
     .feature-item span { color: var(--accent); }
-
-    /* ─── Connect Overlay ────────────────────────────────────────── */
-    #connectOverlay {
-      text-align: center;
-      padding: 60px 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 80vh;
-    }
-
-    .connect-big-title {
-      font-family: 'Poppins', sans-serif;
-      font-size: 56px;
-      font-weight: 700;
-      letter-spacing: -2px;
-      margin-bottom: 16px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: fadeInUp 0.6s ease-out;
-    }
-
-    .connect-subtitle {
-      color: var(--text-secondary);
-      font-size: 15px;
-      margin-bottom: 36px;
-      line-height: 1.6;
-      max-width: 500px;
-      animation: fadeInUp 0.7s ease-out;
-    }
-
-    .connect-big-btn {
-      font-family: 'Poppins', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      padding: 18px 56px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      background-size: 200% 200%;
-      animation: fadeInUp 0.8s ease-out, glow 3s ease-in-out infinite;
-      color: #000;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-    }
-
-    .connect-big-btn:hover {
-      transform: translateY(-4px) scale(1.05);
-      box-shadow: 0 30px 60px rgba(16,185,129,0.6);
-    }
-
-    .wallet-options {
-      display: flex;
-      gap: 14px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 24px;
-    }
-
-    .wallet-opt {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px 22px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 11px;
-      color: var(--text-muted);
-      min-width: 90px;
-      animation: fadeInUp 1s ease-out;
-      animation-fill-mode: both;
-    }
-
-    .wallet-opt:nth-child(1) { animation-delay: 0.1s; }
-    .wallet-opt:nth-child(2) { animation-delay: 0.2s; }
-    .wallet-opt:nth-child(3) { animation-delay: 0.3s; }
-    .wallet-opt:nth-child(4) { animation-delay: 0.4s; }
-    .wallet-opt:nth-child(5) { animation-delay: 0.5s; }
-    .wallet-opt:nth-child(6) { animation-delay: 0.6s; }
-
-    .wallet-opt:hover {
-      border-color: rgba(16,185,129,0.4);
-      transform: translateY(-4px);
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-    }
-
-    .wallet-opt .wi { font-size: 32px; }
-
-    .features-list {
-      display: flex;
-      justify-content: center;
-      gap: 28px;
-      margin-top: 48px;
-      flex-wrap: wrap;
-    }
-
-    .feature-item {
-      font-size: 12px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .feature-item span { color: var(--secondary); }
-
-    /* ─── Dashboard ──────────────────────────────────────────────── */
     #dashboard { display: none; }
     .add-contact-form { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 14px; display: none; }
     .add-contact-form.show { display: block; }
-
-    /* ─── Add Contact Form ───────────────────────────────────────── */
-    .add-contact-form {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      display: none;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease-out;
-    }
-
-    .add-contact-form.show {
-      display: block;
-      max-height: 500px;
-    }
-
     .add-contact-form input { margin-bottom: 8px; }
     .section-gap { margin-bottom: 16px; }
     .footer { text-align: center; padding: 24px; font-size: 11px; color: var(--muted); }
     .footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
 
-    /* ─── Footer ─────────────────────────────────────────────────── */
-    .footer {
-      text-align: center;
-      padding: 24px;
-      font-size: 11px;
-      color: var(--text-muted);
+    /* ─── Mobile Bottom Nav ─────────────────────────────────────── */
+    .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: rgba(10,10,20,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); z-index: 200; justify-content: space-around; align-items: center; }
+    .bottom-nav .tab { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 16px; cursor: pointer; border-radius: 12px; transition: all 0.2s; color: var(--muted); font-size: 10px; font-family: 'Syne', sans-serif; font-weight: 600; min-width: 60px; text-align: center; }
+    .bottom-nav .tab-icon { font-size: 20px; }
+    .bottom-nav .tab.active { color: var(--accent); }
+    .bottom-nav .tab.active .tab-icon { transform: scale(1.1); }
+    .bottom-nav .tab:active { transform: scale(0.95); }
+
+    /* ─── Drawer ────────────────────────────────────────────────── */
+    #moreDrawer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); border-radius: 20px 20px 0 0; z-index: 300; transform: translateY(100%); transition: transform 0.3s ease; max-height: 80vh; overflow-y: auto; padding: 20px; }
+    #moreDrawer.open { transform: translateY(0); }
+    .drawer-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+    .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .drawer-close { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 4px 8px; }
+    .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 299; }
+    .drawer-overlay.show { display: block; }
+
+    @media (max-width: 768px) {
+      .bottom-nav { display: flex; }
+      .app { padding-bottom: 80px; }
+      .grid { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .span-2 { grid-column: span 1; }
+      .connect-big-title { font-size: 36px; }
+      header { flex-wrap: wrap; gap: 12px; }
     }
-
-    .footer a {
-      color: var(--secondary);
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .footer a:hover { text-decoration: underline; }
-
-    /* ─── Mobile Bottom Navigation ────────────────────────────────── */
-    .bottom-nav {
-      display: none;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 64px;
-      background: rgba(10,10,20,0.95);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border);
-      padding-bottom: env(safe-area-inset-bottom);
-      z-index: 200;
-      justify-content: space-around;
-      align-items: center;
-    }
-
-    .bottom-nav .tab {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 8px 16px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-      color: var(--text-muted);
-      font-size: 10px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .bottom-nav .tab .tab-icon {
-      font-size: 24px;
-      transition: all 0.3s;
-    }
-
-    .bottom-nav .tab.active {
-      color: var(--text);
-    }
-
-    .bottom-nav .tab.active .tab-icon {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      transform: scale(1.1);
-    }
-
-    .bottom-nav .tab:active {
-      transform: scale(0.95);
-    }
-
-    /* ─── More Drawer ────────────────────────────────────────────── */
-    #moreDrawer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 85vh;
-      background: linear-gradient(135deg, #0a0a14 0%, #0f1419 50%, #0a1410 100%);
-      backdrop-filter: blur(20px);
-      border-radius: 24px 24px 0 0;
-      padding: 24px;
-      transform: translateY(100%);
-      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 300;
-      overflow-y: auto;
-      box-shadow: 0 -10px 50px rgba(0,0,0,0.5);
-    }
-
-    #moreDrawer.open {
-      transform: translateY(0);
-    }
-
-    .drawer-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
-    .drawer-handle {
-      width: 40px;
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      margin: 0 auto 20px;
-    }
-
-    .drawer-close {
-      background: none;
-      border: none;
-      font-size: 24px;
-      color: var(--text-muted);
-      cursor: pointer;
-      padding: 8px;
-      transition: all 0.2s;
-    }
-
-    .drawer-close:hover {
-      color: var(--text);
-      transform: rotate(90deg);
-    }
-
-    /* ─── Responsive Breakpoints ──────────────────────────────────── */
-    @media (max-width: 767px) {
-      .app {
-        padding: 16px;
-        padding-bottom: 80px;
-      }
-
-      header {
-        padding: 12px 16px;
-        position: relative;
-      }
-
-      .bottom-nav {
-        display: flex;
-      }
-
-      .grid, .grid-3 {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-
-      .span-2 {
-        grid-column: span 1;
-      }
-
-      .card {
-        padding: 20px;
-      }
-
-      .connect-big-title {
-        font-size: 40px;
-      }
-
-      #walletBar {
-        flex-wrap: wrap;
-      }
-
-      .balance-pill {
-        font-size: 10px;
-        padding: 6px 12px;
-      }
-
-      .row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .row .btn {
-        width: 100%;
-      }
-    }
-
-    @media (min-width: 768px) and (max-width: 1023px) {
-      .grid-3 {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .card {
-        padding: 24px;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .grid {
-        grid-template-columns: 1fr 2fr;
-      }
-
-      .card {
-        padding: 28px;
-      }
-    }
-
-    @media (min-width: 1440px) {
-      .app {
-        max-width: 1600px;
-      }
-    }
-
-    /* ─── Accessibility ───────────────────────────────────────────── */
-    *:focus-visible {
-      outline: 2px solid var(--primary);
-      outline-offset: 2px;
-      border-radius: 4px;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-      }
-    }
-
-    /* ─── Scrollbar ───────────────────────────────────────────────── */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: var(--surface2); }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(16,185,129,0.3);
-      border-radius: 2px;
-    }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(16,185,129,0.5); }
-
-    /* ─── Staggered Animations ────────────────────────────────────── */
-    .card:nth-child(1) { animation-delay: 0.1s; }
-    .card:nth-child(2) { animation-delay: 0.2s; }
-    .card:nth-child(3) { animation-delay: 0.3s; }
-    .card:nth-child(4) { animation-delay: 0.4s; }
-    .card:nth-child(5) { animation-delay: 0.5s; }
-    .card:nth-child(6) { animation-delay: 0.6s; }
-    .card:nth-child(7) { animation-delay: 0.7s; }
-    .card:nth-child(8) { animation-delay: 0.8s; }
   </style>
 </head>
 <body>
 <div class="app">
+
   <!-- Header -->
   <header>
     <div style="display:flex;align-items:center;gap:12px;">
@@ -1118,31 +134,38 @@
       <div class="header-badge">Testnet</div>
     </div>
     <div style="display:flex;align-items:center;gap:12px;">
-      <div id="walletBar" style="display:none;align-items:center;gap:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 16px;font-size:12px;">
-        <span style="color:var(--accent);font-weight:500;" id="walletAddr"></span>
-        <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border-radius:6px;padding:4px 10px;font-size:11px;"><div style="width:6px;height:6px;border-radius:50%;background:#2775ca;"></div><span id="usdcBal">0.00 USDC</span></div>
-        <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border-radius:6px;padding:4px 10px;font-size:11px;"><div style="width:6px;height:6px;border-radius:50%;background:#0052b4;"></div><span id="eurcBal">0.00 EURC</span></div>
+      <div id="walletBar">
+        <span class="wallet-addr" id="walletAddr"></span>
+        <div class="balance-pill"><div class="dot dot-usdc"></div><span id="usdcBal">0.00 USDC</span></div>
+        <div class="balance-pill"><div class="dot dot-eurc"></div><span id="eurcBal">0.00 EURC</span></div>
       </div>
-      <button id="connectBtn" onclick="connectWallet()" style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;padding:10px 22px;background:linear-gradient(135deg,#00d4ff,#7b6cff);color:#000;border:none;border-radius:8px;cursor:pointer;">Connect Wallet</button>
+      <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
     </div>
   </header>
 
   <!-- Connect Overlay -->
-  <div id="connectOverlay" style="text-align:center;padding:60px 20px;">
-    <div style="font-family:Syne,sans-serif;font-size:48px;font-weight:800;letter-spacing:-2px;margin-bottom:12px;background:linear-gradient(135deg,#00d4ff,#7b6cff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Arc Pay</div>
-    <div style="color:rgba(255,255,255,0.4);font-size:14px;margin-bottom:32px;line-height:1.6;">A full-featured USDC & EURC payment dashboard<br>built on Arc Testnet by Circle.</div>
-    <button onclick="connectWallet()" style="font-family:Syne,sans-serif;font-size:16px;font-weight:700;padding:16px 48px;background:linear-gradient(135deg,#00d4ff,#7b6cff);color:#000;border:none;border-radius:12px;cursor:pointer;">⚡ Connect Wallet</button>
+  <div id="connectOverlay">
+    <div class="connect-big-title">Arc Pay</div>
+    <div class="connect-subtitle">A full-featured USDC & EURC payment dashboard<br>built on Arc Testnet by Circle.</div>
+    <button class="connect-big-btn" onclick="connectWallet()">⚡ Connect Wallet</button>
+    <div class="features-list">
+      <div class="feature-item"><span>💸</span> Send USDC & EURC</div>
+      <div class="feature-item"><span>📋</span> Address Book</div>
+      <div class="feature-item"><span>📜</span> Tx History</div>
+      <div class="feature-item"><span>🔗</span> Payment Links</div>
+      <div class="feature-item"><span>📱</span> QR Codes</div>
+      <div class="feature-item"><span>🏦</span> Staking Pool</div>
+      <div class="feature-item"><span>🚰</span> Faucet</div>
+    </div>
   </div>
 
   <!-- Dashboard -->
-  <div id="dashboard" style="display:none;">
+  <div id="dashboard">
 
-    <!-- Row 1: Send + Address Book -->
-    <div class="grid section-gap">
+    <!-- Send + Address Book -->
     <div class="grid section-gap" id="send-section">
       <div class="card">
         <div class="card-title"><span class="icon">💸</span> Send Payment</div>
-        <div class="card-title" role="heading" aria-level="2"><span class="icon" aria-hidden="true">💸</span> Send Payment</div>
         <div class="token-tabs">
           <div class="token-tab active-usdc" id="tab-usdc" onclick="selectToken('USDC')">USDC</div>
           <div class="token-tab" id="tab-eurc" onclick="selectToken('EURC')">EURC</div>
@@ -1153,41 +176,60 @@
         <input id="amount" type="number" placeholder="e.g. 10" step="0.01" />
         <button class="btn btn-primary" onclick="sendToken()">Send →</button>
         <div id="status"></div>
-        <label for="recipient">Recipient Address</label>
-        <input id="recipient" type="text" placeholder="0x..." aria-label="Recipient wallet address" />
-        <label for="amount">Amount</label>
-        <input id="amount" type="number" placeholder="e.g. 10" step="0.01" aria-label="Amount to send" />
-        <button class="btn btn-primary" onclick="sendToken()" aria-label="Send payment">Send →</button>
-        <div id="status" role="status" aria-live="polite"></div>
       </div>
       <div class="card">
         <div class="card-title"><span class="icon">📋</span> Address Book</div>
-        <div class="card-title" role="heading" aria-level="2"><span class="icon" aria-hidden="true">📋</span> Address Book</div>
         <button class="btn btn-secondary" onclick="toggleAddContact()" style="margin-bottom:12px;">+ Add Contact</button>
         <div class="add-contact-form" id="addContactForm">
           <label>Name</label>
           <input id="contactName" type="text" placeholder="e.g. Alice" />
+          <label>Wallet Address</label>
+          <input id="contactAddr" type="text" placeholder="0x..." />
+          <button class="btn btn-green" onclick="saveContact()">Save Contact</button>
+        </div>
+        <div class="contact-list" id="contactList">
+          <div class="empty-state">No contacts yet.<br>Add one above!</div>
+        </div>
       </div>
     </div>
 
-    <!-- Row 2: Staking Pool -->
-    <div class="card section-gap">
-      <div class="card-title"><span class="icon">🏦</span> USDC Staking Pool — 10% APY</div>
+    <!-- Staking Pool -->
     <div class="card section-gap" id="stake-section">
-      <div class="card-title" role="heading" aria-level="2"><span class="icon" aria-hidden="true">🏦</span> USDC Staking Pool — 10% APY</div>
+      <div class="card-title"><span class="icon">🏦</span> USDC Staking Pool — 10% APY</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
         <div style="background:var(--surface2);border-radius:10px;padding:14px;">
           <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Your Stake</div>
           <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent);" id="stakedAmount">0.00</div>
+          <div style="font-size:10px;color:var(--muted);">USDC</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:10px;padding:14px;">
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Pending Rewards</div>
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green);" id="pendingReward">0.000000</div>
+          <div style="font-size:10px;color:var(--muted);">USDC</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:10px;padding:14px;">
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Total Pool</div>
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;" id="totalStaked">0.00</div>
+          <div style="font-size:10px;color:var(--muted);">USDC</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:10px;padding:14px;">
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Staking Since</div>
+          <div style="font-size:12px;font-weight:500;margin-top:6px;" id="stakingSince">Not staking</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+        <div style="flex:1;min-width:150px;"><label>Amount to Stake</label><input id="stakeAmount" type="number" placeholder="e.g. 100" style="margin-bottom:0;" /></div>
+        <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="stakeUSDC()">Stake →</button>
+        <button class="btn btn-secondary" style="width:auto;padding:10px 20px;" onclick="claimRewardsOnly()">Claim Rewards</button>
+        <button class="btn" style="width:auto;padding:10px 20px;background:var(--red);color:#fff;" onclick="unstakeUSDC()">Unstake All</button>
+      </div>
       <div id="stakingStatus" style="margin-top:10px;padding:10px 14px;border-radius:8px;font-size:12px;display:none;"></div>
     </div>
 
-    <!-- Row 3: Tx History + QR + Payment Link -->
-    <div class="grid-3 section-gap">
+    <!-- Tx History + QR + Payment Link -->
     <div class="grid-3 section-gap" id="history-section">
       <div class="card span-2">
         <div class="card-title"><span class="icon">📜</span> Transaction History</div>
-        <div class="card-title" role="heading" aria-level="2"><span class="icon" aria-hidden="true">📜</span> Transaction History</div>
         <div class="tx-list" id="txList">
           <div class="empty-state">No transactions yet.<br>Send something to see history here!</div>
         </div>
@@ -1195,121 +237,97 @@
       <div class="card">
         <div class="card-title"><span class="icon">📱</span> Receive</div>
         <canvas id="qrCanvas" width="160" height="160"></canvas>
-        <div class="card-title" role="heading" aria-level="2"><span class="icon" aria-hidden="true">📱</span> Receive</div>
-        <canvas id="qrCanvas" width="160" height="160" aria-label="QR code for receiving payments"></canvas>
         <div class="qr-address" id="qrAddress">Connect wallet to generate QR</div>
         <div class="divider"></div>
         <div class="card-title" style="margin-bottom:10px;"><span class="icon">🔗</span> Payment Link</div>
         <label>Amount to Request</label>
+        <div class="row" style="margin-bottom:10px;">
+          <input id="requestAmount" type="number" placeholder="10" style="margin-bottom:0;" />
+          <button class="btn btn-secondary" onclick="generatePaymentLink()" style="width:auto;padding:10px 14px;">Gen</button>
+        </div>
+        <div class="payment-link-box" id="paymentLink">Enter amount and click Gen</div>
+        <button class="btn btn-secondary" onclick="copyPaymentLink()">📋 Copy Link</button>
       </div>
     </div>
 
-    <!-- Row 4: Faucet -->
-    <div class="card section-gap">
-      <div class="card-title"><span class="icon">🚰</span> USDC Faucet</div>
+    <!-- Faucet -->
     <div class="card section-gap" id="faucet-section">
-      <div class="card-title" role="heading" aria-level="2"><span class="icon" aria-hidden="true">🚰</span> USDC Faucet</div>
+      <div class="card-title"><span class="icon">🚰</span> USDC Faucet</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
         <div style="background:var(--surface2);border-radius:10px;padding:20px;text-align:center;">
           <div style="font-size:32px;margin-bottom:8px;">💧</div>
           <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:6px;">Get Free Testnet USDC</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;">Request free USDC from Circle's official faucet.</div>
+          <button class="btn btn-primary" onclick="window.open('https://faucet.circle.com','_blank')">🚰 Open Circle Faucet</button>
+        </div>
+        <div style="background:var(--surface2);border-radius:10px;padding:20px;">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:14px;">📋 How to use</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;gap:10px;align-items:center;font-size:12px;"><div style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:10px;">1</div>Click Open Circle Faucet</div>
+            <div style="display:flex;gap:10px;align-items:center;font-size:12px;"><div style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:10px;">2</div>Select <b>Arc Testnet</b></div>
+            <div style="display:flex;gap:10px;align-items:center;font-size:12px;"><div style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:10px;">3</div>Select <b>USDC</b> as token</div>
+            <div style="display:flex;gap:10px;align-items:center;font-size:12px;"><div style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:10px;">4</div>Paste your address below</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;"><label>Your Wallet Address</label><input id="faucetAddr" type="text" placeholder="Connect wallet to see your address" style="margin-bottom:0;" readonly /></div>
+        <button class="btn btn-secondary" style="width:auto;padding:10px 20px;" onclick="copyFaucetAddress()">📋 Copy</button>
+        <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="refreshBalances()">🔄 Refresh</button>
       </div>
     </div>
 
-    <!-- AI Suggestions (hidden until quota resets) -->
-    <div class="card section-gap">
-      <div class="card-title"><span class="icon">🤖</span> AI Smart Suggestions</div>
+    <!-- AI Suggestions -->
     <div class="card section-gap" id="ai-section">
-      <div class="card-title" role="heading" aria-level="2"><span class="icon" aria-hidden="true">🤖</span> AI Smart Suggestions</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div class="card-title"><span class="icon">🤖</span> AI Smart Suggestions</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
         <div style="font-size:12px;color:var(--muted);">Personalized recommendations based on your wallet activity</div>
         <button class="btn btn-primary" style="width:auto;padding:10px 20px;" onclick="getAISuggestions()">✨ Get Suggestions</button>
       </div>
+      <div id="aiLoading" style="display:none;text-align:center;padding:20px;color:var(--muted);font-size:13px;">🤖 Analyzing your wallet...</div>
+      <div id="aiSuggestions" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+
+  </div><!-- /dashboard -->
+
+  <div class="footer">
+    Built by <a href="https://www.linkedin.com/in/amanverma1005ed/" target="_blank">Aman Verma</a> · Powered by Arc Testnet by Circle
   </div>
 
 </div>
 
-<!-- Mobile Bottom Navigation -->
-<nav class="bottom-nav" role="navigation" aria-label="Mobile navigation">
-  <div class="tab active" data-tab="send" onclick="switchTab('send')" role="button" tabindex="0" aria-label="Send payments">
+<!-- Mobile Bottom Nav -->
+<nav class="bottom-nav" role="navigation">
+  <div class="tab active" data-tab="send" onclick="switchTab('send')">
     <div class="tab-icon">💸</div>
     <span>Send</span>
   </div>
-  <div class="tab" data-tab="history" onclick="switchTab('history')" role="button" tabindex="0" aria-label="Transaction history">
+  <div class="tab" data-tab="history" onclick="switchTab('history')">
     <div class="tab-icon">📜</div>
     <span>History</span>
   </div>
-  <div class="tab" data-tab="stake" onclick="switchTab('stake')" role="button" tabindex="0" aria-label="Staking">
+  <div class="tab" data-tab="stake" onclick="switchTab('stake')">
     <div class="tab-icon">🏦</div>
     <span>Stake</span>
   </div>
-  <div class="tab" data-tab="more" onclick="openDrawer()" role="button" tabindex="0" aria-label="More options">
-    <div class="tab-icon">⋮</div>
+  <div class="tab" data-tab="more" onclick="openDrawer()">
+    <div class="tab-icon">⋯</div>
     <span>More</span>
   </div>
 </nav>
 
-<!-- More Drawer (Mobile) -->
-<div id="moreDrawer" role="dialog" aria-label="More options drawer" aria-hidden="true">
+<!-- More Drawer -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div id="moreDrawer">
   <div class="drawer-handle"></div>
   <div class="drawer-header">
-    <h2 style="font-size: 18px; font-weight: 600; color: var(--text); margin: 0;">More Options</h2>
-    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close drawer">✕</button>
+    <h2 style="font-size:18px;font-weight:600;color:var(--text);margin:0;">More Options</h2>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
   </div>
-  <div class="drawer-content" id="drawerContent">
-    <!-- Content will be populated dynamically -->
-  </div>
+  <div id="drawerContent"></div>
 </div>
-
-<!-- WalletConnect Web3Modal -->
-<script type="module">
-  import { createWeb3Modal, defaultConfig } from 'https://esm.sh/@web3modal/ethers@4.2.3';
-
-  const ARC_CHAIN = {
-    chainId: 5042002,
-    name: 'Arc Testnet',
-    currency: 'USDC',
-    explorerUrl: 'https://testnet.arcscan.app',
-    rpcUrl: 'https://rpc.testnet.arc.network'
-  };
-
-  const metadata = {
-    name: 'Arc Pay',
-    description: 'USDC Payment Dashboard on Arc Testnet',
-    url: window.location.origin,
-    icons: ['https://avatars.githubusercontent.com/u/37784886']
-  };
-
-  const modal = createWeb3Modal({
-    ethersConfig: defaultConfig({ metadata }),
-    chains: [ARC_CHAIN],
-    projectId: 'f3c74f524436e68f9e7de020a6833a45',
-    themeMode: 'dark',
-    themeVariables: {
-      '--w3m-accent': '#00d4ff',
-      '--w3m-border-radius-master': '8px'
-    }
-  });
-
-  window._w3modal = modal;
-
-  modal.subscribeProvider(function(state) {
-    if (state.isConnected && state.address) {
-      window._w3mAddress = state.address;
-      window._w3mProvider = state.provider;
-      if (typeof window.onWalletConnected === 'function') {
-        window.onWalletConnected(state.provider, state.address);
-      }
-    } else {
-      if (typeof window.onWalletDisconnected === 'function') {
-        window.onWalletDisconnected();
-      }
-    }
-  });
-</script>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
 <script src="app.js"></script>
 </body>
-</html>
 </html>
